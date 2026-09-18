@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en" translate="no" class="notranslate" data-font="serif" data-mode="reg" data-size="medium">
+<html lang="en" translate="no" class="notranslate" data-font="serif" data-size="medium">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="google" content="notranslate" />
-    <meta name="color-scheme" content="light dark" />
+    <meta name="color-scheme" content="light" />
     <meta
       name="description"
       content="A web page that behaves like a sheet of paper in a typewriter. Nothing you write leaves your device."
@@ -78,34 +78,25 @@
           <label class="setting-choice"><input type="radio" name="font" value="dys" /><span>Round letters</span><span class="setting-sample font-preview" data-preview-font="dys" aria-hidden="true">Aa Bb</span></label>
         </fieldset>
         <fieldset>
-          <legend>Colors</legend>
-          <label class="setting-choice"><input type="radio" name="mode" value="reg" checked /><span>Black on white</span><span class="setting-sample color-preview" data-preview-mode="reg" aria-hidden="true">Aa</span></label>
-          <label class="setting-choice"><input type="radio" name="mode" value="hc" /><span>White on black</span><span class="setting-sample color-preview" data-preview-mode="hc" aria-hidden="true">Aa</span></label>
-        </fieldset>
-        <fieldset>
           <legend>Font size</legend>
           <label class="setting-choice"><input type="radio" name="size" value="small" /><span>Small</span><span class="setting-sample size-preview" data-preview-font="serif" data-preview-size="small" aria-hidden="true">Aa</span></label>
           <label class="setting-choice"><input type="radio" name="size" value="medium" checked /><span>Medium</span><span class="setting-sample size-preview" data-preview-font="serif" data-preview-size="medium" aria-hidden="true">Aa</span></label>
           <label class="setting-choice"><input type="radio" name="size" value="large" /><span>Large</span><span class="setting-sample size-preview" data-preview-font="serif" data-preview-size="large" aria-hidden="true">Aa</span></label>
         </fieldset>
-        <button type="button" id="settingsReset" class="btn" aria-label="Reset all settings to default">Reset all settings to default</button>
-        <section id="settingsRecovery" aria-label="Draft recovery">
-          <button type="button" id="settingsRecover" class="btn" aria-expanded="false" aria-controls="recoveryPanel">Recover previous draft (0)</button>
-          <div id="recoveryPanel" hidden>
-            <p id="recoveryEmpty">No previous drafts.</p>
-            <ul id="recoveryList" aria-label="Previous drafts"></ul>
-            <p id="recoveryMessage" class="recovery-message" role="status" tabindex="-1" hidden></p>
-          </div>
-        </section>
+        <fieldset id="settingsRecovery">
+          <legend>Drafts</legend>
+          <p id="recoveryEmpty">No previous drafts.</p>
+          <ul id="recoveryList" aria-label="Previous drafts"></ul>
+          <p id="recoveryMessage" class="recovery-message" role="status" tabindex="-1" hidden></p>
+        </fieldset>
         <section id="settingsAbout" aria-labelledby="aboutTitle">
           <h3 id="aboutTitle">About</h3>
-          <p>Created by <img class="authorship-mark" src="/chirpwater-logo.png" width="36" height="24" alt="" aria-hidden="true" /> ChirpWater, LLC</p>
-          <p>chirpwater.com</p>
-          <p>Clean Page is free for everyone, forever.</p>
-          <p>GitHub: repository address coming soon.</p>
-          <p id="appVersion"></p>
+          <p>Clean Page is free software created by <img class="authorship-mark" src="/chirpwater-logo.png" width="22" height="18" alt="" aria-hidden="true" /> ChirpWater, LLC.</p>
+          <p><span id="appVersion"></span> | github.com/chirpwater/cleanpage</p>
+          <p><a href="/PRIVACY.txt" target="_blank" rel="noopener noreferrer">Privacy Policy</a></p>
         </section>
         <div class="dlg-row settings-actions">
+          <button type="button" id="settingsReset" class="btn">Reset</button>
           <button type="button" id="settingsCancel" class="btn">Cancel</button>
           <button type="submit" id="settingsApply" class="btn btn-safe">Apply</button>
         </div>

@@ -1,24 +1,22 @@
 import { version } from "../package.json";
 import { S } from "./strings.js";
+import { ask } from "./ui.js";
 import { initRecovery, type RecoveryOptions } from "./recovery.js";
 export type { RecoveryItem, RecoveryOptions } from "./recovery.js";
 
 export type Settings = {
   font: "serif" | "dys";
-  mode: "reg" | "hc";
   size: "small" | "medium" | "large";
 };
 
 export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
   font: "serif",
-  mode: "reg",
   size: "medium",
 });
 
 export function applySettings(settings: Settings): void {
   const root = document.documentElement;
   root.dataset.font = settings.font;
-  root.dataset.mode = settings.mode;
   root.dataset.size = settings.size;
 }
 
@@ -30,7 +28,10 @@ export function initSettings(
 ): { open: () => void; isOpen: () => boolean; refreshRecovery: () => void } {
   const dialog = document.getElementById("settingsDlg") as HTMLDialogElement;
   const form = document.getElementById("settingsForm") as HTMLFormElement;
-  document.getElementById("appVersion")!.textContent = S.version(version);
+  const resetButton = document.getElementById("settingsReset") as HTMLButtonElement;
+  document.getElementById("appVersion")!.textContent = S.version(
+    import.meta.env.PROD ? version : S.devVersion,
+  );
   let committed = { ...initial };
   const recovery = initRecovery(form, recoveryOptions, () => dialog.close());
 
@@ -55,7 +56,6 @@ export function initSettings(
     const values = new FormData(form);
     committed = {
       font: values.get("font") === "dys" ? "dys" : "serif",
-      mode: values.get("mode") === "hc" ? "hc" : "reg",
       size: values.get("size") === "small" ? "small" : values.get("size") === "large" ? "large" : "medium",
     };
     onApply({ ...committed });
@@ -64,8 +64,17 @@ export function initSettings(
   document.getElementById("settingsCancel")!.addEventListener("click", () => {
     if (!recovery.isBusy()) dialog.close();
   });
-  document.getElementById("settingsReset")!.addEventListener("click", () => {
-    if (!recovery.isBusy()) setDraft(DEFAULT_SETTINGS);
+  resetButton.addEventListener("click", () => {
+    if (recovery.isBusy()) return;
+    void ask(
+      { title: S.resetTitle, body: "", keep: S.cancel, go: S.resetSettings },
+      resetButton,
+    ).then((confirmed) => {
+      if (!confirmed) return;
+      committed = { ...DEFAULT_SETTINGS };
+      onApply({ ...committed });
+      dialog.close();
+    });
   });
   dialog.addEventListener("cancel", (event) => {
     if (recovery.isBusy()) event.preventDefault();

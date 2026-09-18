@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { REPO, chooseFont, chooseMode, open, settle, setText } from "./helpers.js";
+import { REPO, chooseFont, chooseSize, open, settle, setText } from "./helpers.js";
 
 const headersText = (): string => readFileSync(join(REPO, "public", "_headers"), "utf8");
 
@@ -287,7 +287,7 @@ test("the CSP does not block anything the page actually does", async ({ page }) 
   await open(page);
   await setText(page, Array.from({ length: 40 }, (_, i) => `line ${i}`).join("\n"));
   await chooseFont(page, "dys");
-  await chooseMode(page, "hc");
+  await chooseSize(page, "large");
   // Tab is the one gesture that makes the ENGINE write style of its own:
   // `document.execCommand("insertText", …)` (DECISIONS 5.9) makes WebKit apply
   // a style attribute, and under a policy with no `style-src-attr` that is a

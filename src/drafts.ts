@@ -1,5 +1,5 @@
 import {
-  listDraftRecords, migrateLegacyDraft, readDraftRecord, validDraftId, writeDraftRecord,
+  listDraftRecords, migrateLegacyDraft, readDraftRecord, removeDraftRecord, validDraftId, writeDraftRecord,
 } from "./storage.js";
 import type { Draft, DraftRecord } from "./storage.js";
 
@@ -7,6 +7,7 @@ export type { DraftRecord } from "./storage.js";
 export const DRAFT_SESSION_KEY = "cleanpage:document:v2";
 export const DRAFT_LOCK_PREFIX = "cleanpage:document:";
 const STARTUP_LOCK = "cleanpage:startup:v2";
+const KEEP_DRAFTS = 10;
 const blank = (): Draft => ({ text: "", lastSavedText: "", fileName: null });
 
 export interface DraftSession {
@@ -124,6 +125,39 @@ export async function startDraftSession(): Promise<DraftSession> {
     if (disposed || stamp !== generation) return;
     const record: DraftRecord = { ...latest, id, updatedAt: editedAt ?? (draft.text.trim() ? Date.now() : 0) };
     if (writeDraftRecord(record)) stored = record;
+    await prune();
+  }
+
+  async function openIds(): Promise<Set<string>> {
+    const open = new Set([id]);
+    try {
+      for (const lock of (await locks?.query())?.held ?? []) {
+        if (lock.name?.startsWith(DRAFT_LOCK_PREFIX)) open.add(lock.name.slice(DRAFT_LOCK_PREFIX.length));
+      }
+    } catch { /* Without ownership information, only this editor's record is spared. */ }
+    return open;
+  }
+
+  // Editors clone their document under a new id whenever a lease cannot be
+  // reclaimed — a bfcache restore, a recovery that loses the race. Nothing ever
+  // deleted the copy, so the recovery list grew without bound. Without the Lock
+  // API there is no way to tell a stale copy from another tab's live document,
+  // so those browsers keep every record.
+  async function prune(): Promise<void> {
+    if (!locks) return;
+    const open = await openIds();
+    const seen = new Set<string>();
+    let kept = 0;
+    for (const record of listDraftRecords()) {
+      if (!open.has(record.id) && (!record.text.trim() || seen.has(record.text) || kept >= KEEP_DRAFTS)) {
+        removeDraftRecord(record.id);
+        continue;
+      }
+      if (record.text.trim()) {
+        seen.add(record.text);
+        kept++;
+      }
+    }
   }
 
   async function claim(record: DraftRecord | null, requestedId: string): Promise<boolean> {
@@ -182,6 +216,7 @@ export async function startDraftSession(): Promise<DraftSession> {
     await initialize();
   }
 
+  await prune();
   const initial = { ...latest };
   function persist(draft: Draft): boolean {
     latest = { text: draft.text, lastSavedText: draft.lastSavedText, fileName: draft.fileName };
@@ -237,6 +272,7 @@ export async function startDraftSession(): Promise<DraftSession> {
         const record = readDraftRecord(previousId);
         if (!record) return null;
         if (!await claim(record, previousId)) await fresh(record, record.updatedAt);
+        else await prune();
         return { ...latest };
       });
     },

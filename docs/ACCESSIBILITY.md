@@ -5,9 +5,8 @@ Clean Page can be operated entirely from the keyboard: Alt+F reaches the toolbar
 Settings let you change how the page looks and reads:
 
 - A dyslexia-friendly typeface, alongside the default serif
-- A high-contrast, white-on-black colour mode, alongside black-on-white
 - Three text sizes, from small to large
 
-Clean Page also picks up your system's contrast setting automatically when you first open it, respects your operating system's high-contrast display mode, and does not block or override your browser's zoom.
+Clean Page respects your operating system's high-contrast display mode and does not block or override your browser's zoom.
 
 This is a small, hand-built application. It has not been through a formal accessibility audit, and there are likely rough edges we have not found yet.

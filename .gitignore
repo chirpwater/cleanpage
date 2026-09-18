@@ -6,3 +6,4 @@ playwright-report/
 *.tsbuildinfo
 .certs/
 .private/
+.claude/

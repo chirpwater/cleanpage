@@ -189,7 +189,6 @@ test("recovering an earlier draft starts fresh history without reviving the repl
   await expect(ta).toHaveValue("");
   await page.keyboard.insertText("The current story");
   await page.locator("#btnSettings").click();
-  await page.locator("#settingsRecover").click();
   await page.locator("#recoveryList .recovery-item")
     .filter({ hasText: "The earlier story" })
     .getByRole("button", { name: "Recover", exact: true }).click();

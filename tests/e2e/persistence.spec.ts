@@ -27,7 +27,6 @@ test("only applied settings survive tab closure, and resetting settings preserve
   await page.locator("#ta").fill(STORY);
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.getByRole("radio", { name: "Round letters" }).click();
-  await page.getByRole("radio", { name: "White on black" }).click();
   await page.getByRole("radio", { name: "Large", exact: true }).click();
   await expect(page.locator("html")).toHaveAttribute("data-size", "medium");
   await page.getByRole("button", { name: "Apply", exact: true }).click();
@@ -44,23 +43,23 @@ test("only applied settings survive tab closure, and resetting settings preserve
   await expect(reopened.locator("html")).toHaveAttribute("data-size", "large");
   await reopened.getByRole("button", { name: "Settings", exact: true }).click();
   await expect(reopened.getByRole("radio", { name: "Round letters" })).toBeChecked();
-  await expect(reopened.getByRole("radio", { name: "White on black" })).toBeChecked();
   await expect(reopened.getByRole("radio", { name: "Large", exact: true })).toBeChecked();
-  await reopened.getByRole("button", { name: "Reset all settings to default", exact: true }).click();
-  await expect(reopened.locator("html")).toHaveAttribute("data-size", "large");
-  await reopened.getByRole("button", { name: "Apply", exact: true }).click();
+  await reopened.locator("#settingsReset").click();
+  await reopened.locator("#dlgGo").click();
+  await expect(reopened.locator("#settingsDlg")).toBeHidden();
+  await expect(reopened.locator("html")).toHaveAttribute("data-size", "medium");
   await reopened.reload();
   await ready(reopened);
   await expect(reopened.locator("#ta")).toHaveValue(STORY);
   await expect(reopened.locator("html")).toHaveAttribute("data-size", "medium");
   expect(await reopened.evaluate((key) => JSON.parse(localStorage.getItem(key)!), SETTINGS_KEY))
-    .toEqual({ font: "serif", mode: "reg", size: "medium" });
+    .toEqual({ font: "serif", size: "medium" });
 });
 
 test("malformed stored data does not prevent editing or saving a replacement draft", async ({ page }) => {
   await page.addInitScript(({ draftKey, settingsKey }) => {
     localStorage.setItem(draftKey, '{"text":');
-    localStorage.setItem(settingsKey, JSON.stringify({ font: "comic", mode: "reg", size: 999 }));
+    localStorage.setItem(settingsKey, JSON.stringify({ font: "comic", size: 999 }));
   }, { draftKey: DRAFT_KEY, settingsKey: SETTINGS_KEY });
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));

@@ -30,13 +30,13 @@ describe("local recovery storage", () => {
 
   it("keeps writing and display settings independent", () => {
     const draft = { text: "Keep my story", lastSavedText: "", fileName: null };
-    const settings = { font: "dys", mode: "hc", size: "large" } as const;
+    const settings = { font: "dys", size: "large" } as const;
     writeDraft(draft);
     writeSettings(settings);
     expect(readDraft()).toEqual(draft);
     expect(readSettings()).toEqual(settings);
     expect([...values.keys()]).toEqual([DRAFT_KEY, SETTINGS_KEY]);
-    writeSettings({ font: "serif", mode: "reg", size: "medium" });
+    writeSettings({ font: "serif", size: "medium" });
     expect(readDraft()).toEqual(draft);
   });
 
@@ -63,10 +63,9 @@ describe("local recovery storage", () => {
   });
 
   it.each(["{", "null", "[]", "{}",
-    '{"font":"serif","mode":"reg"}',
-    '{"font":"comic","mode":"reg","size":"medium"}',
-    '{"font":"serif","mode":"rainbow","size":"medium"}',
-    '{"font":"serif","mode":"reg","size":20}',
+    '{"font":"serif"}',
+    '{"font":"comic","size":"medium"}',
+    '{"font":"serif","size":20}',
   ])("ignores malformed or unknown settings: %s", (value) => {
     values.set(SETTINGS_KEY, value);
     expect(readSettings()).toBeNull();
@@ -80,7 +79,7 @@ describe("local recovery storage", () => {
     expect(readDraft()).toBeNull();
     expect(readSettings()).toBeNull();
     expect(writeDraft({ text: "Unsaved", lastSavedText: "", fileName: null })).toBe(false);
-    expect(writeSettings({ font: "serif", mode: "reg", size: "medium" })).toBe(false);
+    expect(writeSettings({ font: "serif", size: "medium" })).toBe(false);
   });
 
   it("reports quota failure without replacing the last recoverable draft", () => {

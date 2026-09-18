@@ -15,7 +15,6 @@ async function openPage(page: Page): Promise<void> {
 
 async function recovery(page: Page): Promise<void> {
   await page.getByRole("button", { name: "Settings", exact: true }).click();
-  await page.getByRole("button", { name: /^Recover previous draft \(/ }).click();
 }
 
 test("a second tab starts blank, and both tabs retain independent drafts across reloads", async ({ page, context }) => {
@@ -70,7 +69,7 @@ test("a cold browser context recovers local writing without session storage or a
 test("confirmed New retains writing and recovery is always present, including zero", async ({ page }) => {
   await openPage(page);
   await recovery(page);
-  await expect(page.getByRole("button", { name: "Recover previous draft (0)", exact: true })).toBeVisible();
+  await expect(page.locator("#recoveryEmpty")).toBeVisible();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await page.locator("#ta").fill(first);
   await page.locator("#btnNew").click();
@@ -78,7 +77,7 @@ test("confirmed New retains writing and recovery is always present, including ze
   await page.locator("#dlgGo").click();
   await expect(page.locator("#ta")).toHaveValue("");
   await recovery(page);
-  await expect(page.getByRole("button", { name: "Recover previous draft (1)", exact: true })).toBeVisible();
+  await expect(page.locator("#recoveryList .recovery-item")).toHaveCount(1);
   await expect(page.getByText("The first story", { exact: true })).toBeVisible();
   await page.getByRole("radio", { name: "Round letters", exact: true }).check();
   await page.getByRole("button", { name: "Recover", exact: true }).click();
@@ -181,11 +180,11 @@ test("recovery snippets render as text rather than executable markup", async ({ 
 test("the recovery count updates while Settings is open in another tab", async ({ page, context }) => {
   await openPage(page);
   await recovery(page);
-  await expect(page.locator("#settingsRecover")).toHaveText("Recover previous draft (0)");
+  await expect(page.locator("#recoveryList .recovery-item")).toHaveCount(0);
   const other = await context.newPage();
   await openPage(other);
   await other.locator("#ta").fill(first);
-  await expect(page.locator("#settingsRecover")).toHaveText("Recover previous draft (1)");
+  await expect(page.locator("#recoveryList .recovery-item")).toHaveCount(1);
   await expect(page.locator("#recoveryList")).toContainText("The first story");
   await other.locator("#ta").fill(second);
   await expect(page.locator("#recoveryList")).toContainText("Another adventure");

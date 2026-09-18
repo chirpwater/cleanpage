@@ -5,7 +5,7 @@ import { join, relative, sep } from "node:path";
 
 function swBuildId(): Plugin {
   const EXCLUDE = new Set(["sw.js", "_headers", ".nojekyll"]);
-  const EXCLUDE_EXT = [".ttf", ".txt", ".map"];
+  const EXCLUDE_EXT = [".ttf", ".map"];
   let out = "dist";
   let root = process.cwd();
   return {
@@ -215,13 +215,21 @@ ${body
  * the service worker's precache list is derived from what the build emitted,
  * so the statements work offline like everything else.
  */
+const privacyText = (root: string): string =>
+  readFileSync(join(root, "docs", "PRIVACY.md"), "utf8").replace(/^#+ /gm, "");
+
 function statementPages(): Plugin {
   let root = process.cwd();
   return {
     name: "tp-statement-pages",
-    apply: "build",
     configResolved(cfg) {
       root = cfg.root;
+    },
+    configureServer(server) {
+      server.middlewares.use("/PRIVACY.txt", (_request, response) => {
+        response.setHeader("Content-Type", "text/plain; charset=utf-8");
+        response.end(privacyText(root));
+      });
     },
     generateBundle() {
       const policy = metaCsp(cspFromHeaders(readFileSync(join(root, "public", "_headers"), "utf8")));
@@ -232,6 +240,7 @@ function statementPages(): Plugin {
         const md = readFileSync(join(root, source), "utf8");
         this.emitFile({ type: "asset", fileName, source: statementPage(md, policy, source) });
       }
+      this.emitFile({ type: "asset", fileName: "PRIVACY.txt", source: privacyText(root) });
     },
   };
 }

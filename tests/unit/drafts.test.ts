@@ -279,6 +279,30 @@ describe("independent tab drafts", () => {
     expect(readDraftRecord(originalId)?.text).toBe("Recover me");
   });
 
+  it("prunes stale copies and caps how many drafts pile up", async () => {
+    for (let index = 0; index < 12; index++) {
+      writeDraftRecord({ ...draft(`Draft ${index}`), id: `old-${index}`, updatedAt: 200 + index });
+    }
+    for (let index = 0; index < 4; index++) {
+      writeDraftRecord({ ...draft("Cloned draft"), id: `clone-${index}`, updatedAt: 300 + index });
+    }
+    writeDraftRecord({ ...draft(""), id: "empty", updatedAt: 0 });
+    await tab();
+    const records = listDraftRecords();
+    expect(records.filter((record) => record.text === "Cloned draft")).toHaveLength(1);
+    expect(records).toHaveLength(10);
+    expect(readDraftRecord("empty")).toBeNull();
+  });
+
+  it("never prunes a draft another tab is still editing", async () => {
+    const first = await tab();
+    first.session.persist(draft("Shared text"));
+    const second = await tab();
+    second.session.persist(draft("Shared text"));
+    expect(readDraftRecord(first.session.currentId())?.text).toBe("Shared text");
+    expect(readDraftRecord(second.session.currentId())?.text).toBe("Shared text");
+  });
+
   it("copy-only fallback never overwrites an existing draft without Web Locks", async () => {
     vi.stubGlobal("navigator", {});
     writeDraftRecord({ ...draft("Original"), id: "original", updatedAt: 10 });

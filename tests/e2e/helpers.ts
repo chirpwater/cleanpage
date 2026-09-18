@@ -99,13 +99,6 @@ export async function chooseFont(page: Page, font: "serif" | "dys"): Promise<voi
   await settle(page);
 }
 
-export async function chooseMode(page: Page, mode: "reg" | "hc"): Promise<void> {
-  await page.locator("#btnSettings").click();
-  await page.locator(`input[name="mode"][value="${mode}"]`).check();
-  await page.locator("#settingsApply").click();
-  await settle(page);
-}
-
 export async function chooseSize(page: Page, size: "small" | "medium" | "large"): Promise<void> {
   await page.locator("#btnSettings").click();
   await page.locator(`input[name="size"][value="${size}"]`).check();

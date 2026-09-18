@@ -67,6 +67,11 @@ export function writeDraftRecord(record: DraftRecord): boolean {
   });
 }
 
+export function removeDraftRecord(id: string): void {
+  if (!validDraftId(id)) return;
+  try { localStorage.removeItem(DRAFT_RECORD_PREFIX + id); } catch { }
+}
+
 export function listDraftRecords(): DraftRecord[] {
   const records: DraftRecord[] = [];
   try {
@@ -118,13 +123,12 @@ export function readSettings(): Settings | null {
   const settings = read(SETTINGS_KEY);
   if (!isRecord(settings) ||
       (settings.font !== "serif" && settings.font !== "dys") ||
-      (settings.mode !== "reg" && settings.mode !== "hc") ||
       (settings.size !== "small" && settings.size !== "medium" && settings.size !== "large")) {
     return null;
   }
-  return { font: settings.font, mode: settings.mode, size: settings.size };
+  return { font: settings.font, size: settings.size };
 }
 
 export function writeSettings(settings: Settings): boolean {
-  return write(SETTINGS_KEY, { font: settings.font, mode: settings.mode, size: settings.size });
+  return write(SETTINGS_KEY, { font: settings.font, size: settings.size });
 }

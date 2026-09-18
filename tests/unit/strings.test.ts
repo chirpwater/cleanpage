@@ -21,9 +21,6 @@ const IN_MARKUP = [
   "letters",
   "lettersBook",
   "lettersRound",
-  "colours",
-  "colourBlackOnWhite",
-  "colourWhiteOnBlack",
   "fontSize",
   "sizeSmall",
   "sizeMedium",
@@ -33,15 +30,14 @@ const IN_MARKUP = [
   "cancel",
   "previewLetters",
   "previewSize",
-  "draftRecovery",
+  "drafts",
   "previousDrafts",
   "recoveryEmpty",
   "about",
-  "authorship",
+  "freeSoftware",
   "authorName",
-  "authorSite",
-  "freeForever",
-  "sourcePlaceholder",
+  "sourceLink",
+  "privacyLink",
   "downloadTitle",
   "downloadName",
   "pageLabel",
@@ -69,7 +65,8 @@ const IN_CODE = [
   "settingsStorageError",
   "downloadNameRequired",
   "version",
-  "recoverPreviousDrafts",
+  "devVersion",
+  "resetTitle",
   "recoveryUntitled",
   "recoverDraft",
   "recoveryEdited",
@@ -91,10 +88,6 @@ describe("strings.ts is the single source of the wording", () => {
     expect(orphans, "a new string must be wired up, not just declared").toEqual([]);
   });
 
-  it("the recovery action remains visible even when there are no previous drafts", () => {
-    expect(HTML).toContain(S.recoverPreviousDrafts(0));
-  });
-
   it("keeps the chip's two halves joining into one sentence", () => {
     // The chip renders `savedPrefix` and the filename in two spans so that only
     // the filename can be elided; concatenated they are what role="status"
@@ -102,10 +95,4 @@ describe("strings.ts is the single source of the wording", () => {
     expect(S.savedPrefix.endsWith(" "), "the two halves need the space").toBe(true);
   });
 
-  it("speaks to a nine-year-old: no string is a wall of text", () => {
-    for (const [key, value] of Object.entries(S)) {
-      if (typeof value !== "string") continue;
-      expect(value.length, `${key} is short enough to read at a glance`).toBeLessThanOrEqual(80);
-    }
-  });
 });

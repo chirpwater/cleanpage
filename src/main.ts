@@ -43,10 +43,6 @@ const downloadDlg = $<HTMLDialogElement>("downloadDlg");
 btnSave.textContent = files.canSaveToFile() ? S.save : S.download;
 
 const dlg = $<HTMLDialogElement>("dlg");
-const dlgTitle = $("dlgTitle");
-const dlgBody = $("dlgBody");
-const dlgKeep = $<HTMLButtonElement>("dlgKeep");
-const dlgGo = $<HTMLButtonElement>("dlgGo");
 
 const sayDlg = $<HTMLDialogElement>("say");
 const sayBody = $("sayBody");
@@ -159,11 +155,10 @@ async function guard(kind: Guard): Promise<ReplaceApproval | null> {
   refreshDirty();
   const needsConfirmation = hasWriting() && (kind === "new" || isDirty());
   if (!needsConfirmation) return { discardText: null };
-  const confirmed = await confirmDiscard(dlg, dlgTitle, dlgBody, dlgKeep, dlgGo, kind, ta);
+  const confirmed = await confirmDiscard(kind, ta);
   return confirmed ? { discardText: ta.value } : null;
 }
 
-dlgKeep.textContent = S.dlgKeep;
 sayOk.textContent = S.errOk;
 
 const tell = (message: string): void => say(sayDlg, sayBody, sayOk, message, ta);
@@ -376,10 +371,7 @@ function refocusInPlace(yBefore: number, hBefore: number): void {
   window.scrollTo(0, hBefore > 0 ? Math.round(yBefore * (h / hBefore)) : yBefore);
 }
 
-const initialSettings = readSettings() ?? {
-  ...DEFAULT_SETTINGS,
-  mode: matchMedia("(prefers-contrast: more)").matches ? "hc" as const : "reg" as const,
-};
+const initialSettings = readSettings() ?? { ...DEFAULT_SETTINGS };
 applySettings(initialSettings);
 let settingsScroll = { y: 0, h: 0 };
 let settingsStored = true;

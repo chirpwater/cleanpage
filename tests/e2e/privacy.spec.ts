@@ -27,9 +27,7 @@ test("nothing goes over the wire once the page is open", async ({ page, context 
   await setText(page, CORPUS);
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.getByRole("radio", { name: "Round letters" }).click();
-  await page.getByRole("radio", { name: "White on black" }).click();
   await page.getByRole("radio", { name: "Book letters" }).click();
-  await page.getByRole("radio", { name: "Black on white" }).click();
   await page.getByRole("radio", { name: "Large", exact: true }).click();
   await page.getByRole("button", { name: "Apply", exact: true }).click();
   await page.emulateMedia({ media: "print" });
@@ -56,7 +54,6 @@ test("only the explicit local draft stores writing; caches contain only applicat
   await setText(page, CORPUS + "\n" + SECRET + "\n");
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.getByRole("radio", { name: "Round letters" }).click();
-  await page.getByRole("radio", { name: "White on black" }).click();
   await page.getByRole("radio", { name: "Large", exact: true }).click();
   await page.getByRole("button", { name: "Apply", exact: true }).click();
   await settle(page);
@@ -105,7 +102,7 @@ test("only the explicit local draft stores writing; caches contain only applicat
     id, updatedAt: expect.any(Number),
     text: CORPUS + "\n" + SECRET + "\n", lastSavedText: "", fileName: null,
   });
-  expect(JSON.parse(local[SETTINGS_KEY]!)).toEqual({ font: "dys", mode: "hc", size: "large" });
+  expect(JSON.parse(local[SETTINGS_KEY]!)).toEqual({ font: "dys", size: "large" });
   expect(JSON.stringify(session), "session storage contains only an ID, never writing").not.toContain(SECRET);
   expect(storage["cookie"]).toBe("");
   expect(storage["idb"]).toEqual([]);
@@ -115,10 +112,9 @@ test("only the explicit local draft stores writing; caches contain only applicat
   expect(storage["leak"], "no cached response contains the child's writing").toBe(false);
   for (const p of storage["cached"] as string[]) {
     expect(p, "only the application's own files are cached").toMatch(
-      // privacy.html / accessibility.html / doc.css are the two statements the
-      // build publishes with the site; they are precached like everything else
-      // so a reviewer can still read them with the network off.
-      /(\/|index\.html|privacy\.html|accessibility\.html|app\.js|app\.css|doc\.css|favicon\.svg|manifest\.webmanifest|\.woff2|\.png)$/,
+      // The published statements and the font licences are precached like
+      // everything else, so a reviewer can still read them with the network off.
+      /(\/|index\.html|privacy\.html|accessibility\.html|app\.js|app\.css|doc\.css|favicon\.svg|manifest\.webmanifest|\.woff2|\.png|\.txt)$/,
     );
   }
 });
@@ -144,5 +140,4 @@ test("the authorship logo loads from this application without contacting ChirpWa
   const origin = new URL(page.url()).origin;
   expect(requested.some((url) => new URL(url).pathname.endsWith("/chirpwater-logo.png"))).toBe(true);
   expect(requested.filter((url) => new URL(url).origin !== origin), "the logo is bundled, not hotlinked").toEqual([]);
-  await expect(page.locator("#settingsAbout a")).toHaveCount(0);
 });

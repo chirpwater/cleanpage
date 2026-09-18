@@ -6,35 +6,34 @@ test.beforeEach(async ({ page }) => {
   await expect(page.locator("#ta")).toBeFocused();
 });
 
-test("settings are drafts until Apply, including Reset all settings to default", async ({ page }) => {
+test("settings are drafts until Apply, and Reset opens a confirm dialog", async ({ page }) => {
   const root = page.locator("html");
   await expect(page.locator("#bar input[type=radio]")).toHaveCount(0);
 
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.getByRole("radio", { name: "Round letters" }).check();
-  await page.getByRole("radio", { name: "White on black" }).check();
   await page.getByRole("radio", { name: "Large", exact: true }).check();
   await expect(root).toHaveAttribute("data-font", "serif");
-  await expect(root).toHaveAttribute("data-mode", "reg");
   await expect(root).toHaveAttribute("data-size", "medium");
   await page.getByRole("button", { name: "Apply", exact: true }).click();
   await expect(page.locator("#settingsDlg")).not.toBeVisible();
   await expect(root).toHaveAttribute("data-font", "dys");
-  await expect(root).toHaveAttribute("data-mode", "hc");
   await expect(root).toHaveAttribute("data-size", "large");
   await expect(page.locator("#ta")).toBeFocused();
 
   await page.getByRole("button", { name: "Settings", exact: true }).click();
-  await page.getByRole("button", { name: "Reset all settings to default" }).click();
-  await expect(page.getByRole("radio", { name: "Book letters" })).toBeChecked();
-  await expect(page.getByRole("radio", { name: "Black on white" })).toBeChecked();
-  await expect(page.getByRole("radio", { name: "Medium", exact: true })).toBeChecked();
+  await page.locator("#settingsReset").click();
+  await expect(page.locator("#dlgTitle")).toHaveText("Reset to default settings?");
+  await page.locator("#dlgKeep").click();
+  await expect(page.locator("#settingsDlg")).toBeVisible();
+  await expect(page.getByRole("radio", { name: "Round letters" })).toBeChecked();
   await expect(root).toHaveAttribute("data-font", "dys");
-  await expect(root).toHaveAttribute("data-mode", "hc");
   await expect(root).toHaveAttribute("data-size", "large");
-  await page.getByRole("button", { name: "Apply", exact: true }).click();
+
+  await page.locator("#settingsReset").click();
+  await page.locator("#dlgGo").click();
+  await expect(page.locator("#settingsDlg")).not.toBeVisible();
   await expect(root).toHaveAttribute("data-font", "serif");
-  await expect(root).toHaveAttribute("data-mode", "reg");
   await expect(root).toHaveAttribute("data-size", "medium");
 });
 
@@ -62,18 +61,15 @@ test("Cancel and Escape discard choices and return to the writing selection", as
 test("applied choices survive closing the tab and opening another", async ({ page, context }) => {
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.getByRole("radio", { name: "Round letters" }).check();
-  await page.getByRole("radio", { name: "White on black" }).check();
   await page.getByRole("radio", { name: "Large", exact: true }).check();
   await page.getByRole("button", { name: "Apply", exact: true }).click();
   await page.close();
   const reopened = await context.newPage();
   await reopened.goto("/");
   await expect(reopened.locator("html")).toHaveAttribute("data-font", "dys");
-  await expect(reopened.locator("html")).toHaveAttribute("data-mode", "hc");
   await expect(reopened.locator("html")).toHaveAttribute("data-size", "large");
   await reopened.getByRole("button", { name: "Settings", exact: true }).click();
   await expect(reopened.getByRole("radio", { name: "Round letters" })).toBeChecked();
-  await expect(reopened.getByRole("radio", { name: "White on black" })).toBeChecked();
   await expect(reopened.getByRole("radio", { name: "Large", exact: true })).toBeChecked();
 });
 
@@ -133,38 +129,13 @@ test("keyboard focus cycles within settings", async ({ page }) => {
   }
 });
 
-test("About has no navigable links and its logo is a decorative, same-origin image", async ({ page }) => {
-  await page.getByRole("button", { name: "Settings", exact: true }).click();
-  const about = page.getByRole("region", { name: "About", exact: true });
-  await expect(about.getByRole("link")).toHaveCount(0);
-  const logo = about.locator("img.authorship-mark");
-  await expect(logo).toHaveAttribute("alt", "");
-  await expect(logo).toHaveAttribute("aria-hidden", "true");
-  const image = await logo.evaluate((element: HTMLImageElement) => ({
-    local: new URL(element.currentSrc).origin === location.origin,
-    path: new URL(element.currentSrc).pathname,
-    width: element.getBoundingClientRect().width,
-    height: element.getBoundingClientRect().height,
-  }));
-  expect(image.local).toBe(true);
-  expect(image.path).toMatch(/\/chirpwater-logo\.png$/);
-  expect(image.width).toBeGreaterThan(0);
-  expect(image.height).toBeGreaterThan(0);
-});
-
-test("recovery is always available at zero and browsing does not apply settings", async ({ page }) => {
+test("Drafts section is always visible and browsing does not apply settings", async ({ page }) => {
   await expect(page.locator("#settingsDlg")).toBeHidden();
   await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await expect(page.getByRole("group", { name: "Drafts" })).toBeVisible();
   await page.getByRole("radio", { name: "Round letters", exact: true }).check();
-  const recovery = page.getByRole("button", { name: "Recover previous draft (0)", exact: true });
-  await expect(recovery).toBeEnabled();
-  await recovery.click();
-  await expect(recovery).toHaveAttribute("aria-expanded", "true");
   await expect(page.getByRole("radio", { name: "Round letters", exact: true })).toBeChecked();
   await expect(page.locator("html")).toHaveAttribute("data-font", "serif");
-  await recovery.click();
-  await expect(page.locator("#recoveryPanel")).toBeHidden();
-  await expect(page.getByRole("radio", { name: "Round letters", exact: true })).toBeChecked();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(page.locator("#ta")).toBeFocused();
   await expect(page.locator("html")).toHaveAttribute("data-font", "serif");
@@ -180,7 +151,6 @@ test("recovering a listed draft keeps its text literal and does not apply pendin
 
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.getByRole("radio", { name: "Large", exact: true }).check();
-  await page.getByRole("button", { name: "Recover previous draft (1)", exact: true }).click();
   const row = page.locator("#recoveryList .recovery-item");
   await expect(row).toHaveCount(1);
   await expect(row.locator(".recovery-title")).toHaveText(previous.split("\n")[0]);
@@ -194,7 +164,6 @@ test("recovering a listed draft keeps its text literal and does not apply pendin
 
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await expect(page.getByRole("radio", { name: "Medium", exact: true })).toBeChecked();
-  await page.getByRole("button", { name: "Recover previous draft (1)", exact: true }).click();
   await expect(page.locator("#recoveryList .recovery-title")).toHaveText("My current story.");
 });
 
@@ -230,11 +199,10 @@ test("pending recovery blocks Escape, Cancel, and Apply until the ownership lock
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.getByRole("radio", { name: "Round letters", exact: true }).check();
   await page.getByRole("radio", { name: "Large", exact: true }).check();
-  await page.getByRole("button", { name: "Recover previous draft (1)", exact: true }).click();
   await page.getByRole("button", { name: "Recover", exact: true }).click();
   await page.waitForFunction(() => (window as unknown as { recoveryWaiting: boolean }).recoveryWaiting);
   await expect(page.locator("#recoveryMessage")).toBeFocused();
-  await expect(page.locator("#recoveryPanel")).toHaveAttribute("aria-busy", "true");
+  await expect(page.locator("#settingsRecovery")).toHaveAttribute("aria-busy", "true");
 
   try {
     for (const selector of ["#settingsCancel", "#settingsApply"]) {

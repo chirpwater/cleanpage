@@ -152,18 +152,31 @@ function trapTab(dlg: HTMLDialogElement, stops: HTMLElement[]): () => void {
   return () => dlg.removeEventListener("keydown", onKeydown);
 }
 
-export function confirmDiscard(
-  dlg: HTMLDialogElement,
-  title: HTMLElement,
-  body: HTMLElement,
-  keep: HTMLButtonElement,
-  go: HTMLButtonElement,
-  kind: Guard,
+export function confirmDiscard(kind: Guard, restoreFocusTo: HTMLElement): Promise<boolean> {
+  return ask(
+    {
+      title: kind === "new" ? S.dlgNewTitle : S.dlgOpenTitle,
+      body: kind === "new" ? S.dlgNewBody : S.dlgOpenBody,
+      keep: S.dlgKeep,
+      go: kind === "new" ? S.dlgNewGo : S.dlgOpenGo,
+    },
+    restoreFocusTo,
+  );
+}
+
+export function ask(
+  labels: { title: string; body: string; keep: string; go: string },
   restoreFocusTo: HTMLElement,
 ): Promise<boolean> {
-  title.textContent = kind === "new" ? S.dlgNewTitle : S.dlgOpenTitle;
-  body.textContent = kind === "new" ? S.dlgNewBody : S.dlgOpenBody;
-  go.textContent = kind === "new" ? S.dlgNewGo : S.dlgOpenGo;
+  const dlg = document.getElementById("dlg") as HTMLDialogElement;
+  const title = document.getElementById("dlgTitle")!;
+  const body = document.getElementById("dlgBody")!;
+  const keep = document.getElementById("dlgKeep") as HTMLButtonElement;
+  const go = document.getElementById("dlgGo") as HTMLButtonElement;
+  title.textContent = labels.title;
+  body.textContent = labels.body;
+  keep.textContent = labels.keep;
+  go.textContent = labels.go;
 
   return new Promise<boolean>((resolve) => {
     let answer = false;

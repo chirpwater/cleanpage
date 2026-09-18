@@ -11,8 +11,7 @@ export function initRecovery(
   options: RecoveryOptions | undefined,
   onRecovered: () => void,
 ): { refresh: () => void; reset: () => void; isBusy: () => boolean } {
-  const toggle = document.getElementById("settingsRecover") as HTMLButtonElement;
-  const panel = document.getElementById("recoveryPanel")!;
+  const section = document.getElementById("settingsRecovery")!;
   const list = document.getElementById("recoveryList")!;
   const empty = document.getElementById("recoveryEmpty")!;
   const message = document.getElementById("recoveryMessage")!;
@@ -33,7 +32,7 @@ export function initRecovery(
   function focusRow(id: string): void {
     const button = Array.from(list.querySelectorAll<HTMLButtonElement>("button"))
       .find((candidate) => candidate.dataset.draftId === id);
-    (button ?? toggle).focus({ preventScroll: true });
+    (button ?? message).focus({ preventScroll: true });
   }
 
   async function recover(id: string): Promise<void> {
@@ -42,7 +41,7 @@ export function initRecovery(
     const controls = Array.from(form.querySelectorAll<HTMLInputElement | HTMLButtonElement>("input, button"));
     const disabled = controls.map((control) => control.disabled);
     for (const control of controls) control.disabled = true;
-    panel.setAttribute("aria-busy", "true");
+    section.setAttribute("aria-busy", "true");
     showMessage(S.recoveryOpening);
     message.focus({ preventScroll: true });
     let recovered = false;
@@ -55,7 +54,7 @@ export function initRecovery(
     } finally {
       busy = false;
       for (const [index, control] of controls.entries()) control.disabled = disabled[index];
-      panel.removeAttribute("aria-busy");
+      section.removeAttribute("aria-busy");
     }
     if (recovered) {
       showMessage("");
@@ -76,8 +75,6 @@ export function initRecovery(
       items = [];
       showMessage(S.recoveryError);
     }
-    toggle.textContent = S.recoverPreviousDrafts(items.length);
-    if (panel.hidden) return;
     const rows = items.map((item) => ({ ...item, title: rowTitle(item.text) }));
     const signature = JSON.stringify(rows.map(({ id, title, updatedAt }) => [id, title, updatedAt]));
     if (rendered === signature) return;
@@ -118,19 +115,9 @@ export function initRecovery(
     if (focusedId !== undefined) focusRow(focusedId);
   }
 
-  toggle.addEventListener("click", () => {
-    if (busy) return;
-    panel.hidden = !panel.hidden;
-    toggle.setAttribute("aria-expanded", String(!panel.hidden));
-    showMessage("");
-    refresh();
-  });
-
   return {
     refresh,
     reset: () => {
-      panel.hidden = true;
-      toggle.setAttribute("aria-expanded", "false");
       showMessage("");
       refresh();
     },
