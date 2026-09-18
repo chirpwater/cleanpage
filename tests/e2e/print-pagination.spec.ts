@@ -138,6 +138,36 @@ test("the hostile corpus prints exactly as many sheets as the screen shows", asy
 });
 
 /**
+ * The shipped sheet block must stay SHORTER than the paper. DECISIONS 10.3 drew
+ * the half inch as `.page` padding and set the page box to `margin: 0` so Gecko
+ * would hand over the whole 1056 px sheet; the 48 + 960 = 1008 px block is what
+ * leaves 48 px of slack for a printer's unwriteable margin, which comes off the
+ * usable height before any of this CSS is consulted. A block that fills the
+ * sheet exactly has no slack at all, and then 30 lines break as 29 + 1 — a
+ * 2-page document on 4 sheets, two of them all but blank. That is the Gecko
+ * defect round 2 fixed, and `.page { padding: 48px }` silently reintroduced it.
+ *
+ * Trimming the usable height with a `@page` bottom margin reproduces the hard
+ * margin in Chromium. Measured against the 1008 px block: 0.125in, 0.25in and
+ * 0.5in all print 2 sheets of 30 lines. Against a 1056 px block every one of
+ * them prints 4 sheets of 29 + 1.
+ */
+test("the sheet block leaves slack for a printer's unwriteable margin", async ({ page }) => {
+  await open(page);
+  const N = 60;
+  await setText(page, numberedLines(N));
+  const path = await printToPdf(page, "hard-margin.pdf", {
+    inject: "@media print { @page { size: letter; margin: 0 0 0.25in } }",
+  });
+
+  expect(pdfPageCount(path), "30 lines to a sheet, not 29 + 1").toBe(N / LINES_PER_PAGE);
+  for (let p = 1; p <= N / LINES_PER_PAGE; p++) {
+    const got = words(pdfPageText(path, p)).filter((w) => /^L\d{3}$/.test(w));
+    expect(got, `sheet ${p} is a whole page`).toHaveLength(LINES_PER_PAGE);
+  }
+});
+
+/**
  * The trap this project exists to avoid. A `height: 960px; overflow: hidden`
  * page shape silently DELETES the 30th line of every page. Extra paper is
  * recoverable; deleted words are not. The same applies to a wider margin, which
