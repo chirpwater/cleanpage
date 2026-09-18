@@ -12,8 +12,13 @@
   --paper: #fdfdfb;
   --desk: #5f6368;
   --rule: #6b7280;
-  --bar-bg: #e8eaed;
+  --bar-bg: #f4f4f1;
   --bar-ink: #14202b;
+  --soft-ink: #58626d;
+  --dim-ink: #8b939c;
+  --hair: #d6d7d2;
+  --hover: #e7e7e1;
+  --pick: #e8ebef;
   --btn-bg: #ffffff;
   --btn-line: #4b5563;
   --sel-bg: #14202b;
@@ -21,11 +26,11 @@
   --focus: #0b57d0;
   --halo: #ffffff;
   --ok-ink: #0b5323;
-  --ok-bg: #e6f4ea;
   --warn-ink: #8a3b00;
   --warn-bg: #fff3e0;
   --edge: #6b7280;
   --shade: 0 2px 12px rgb(0 0 0 / 35%);
+  --lift: 0 12px 36px rgb(0 0 0 / 28%);
   color-scheme: light;
 }
 html[data-mode="hc"] {
@@ -35,6 +40,11 @@ html[data-mode="hc"] {
   --rule: #8a8a8a;
   --bar-bg: #000000;
   --bar-ink: #ffffff;
+  --soft-ink: #e8e8e8;
+  --dim-ink: #9a9a9a;
+  --hair: #ffffff;
+  --hover: #2b2b2b;
+  --pick: #1e1e1e;
   --btn-bg: #000000;
   --btn-line: #ffffff;
   --sel-bg: #ffd400;
@@ -42,11 +52,11 @@ html[data-mode="hc"] {
   --focus: #ffd400;
   --halo: #000000;
   --ok-ink: #ffffff;
-  --ok-bg: #000000;
   --warn-ink: #ffd400;
   --warn-bg: #000000;
   --edge: #8a8a8a;
   --shade: none;
+  --lift: none;
   color-scheme: dark;
 }
 @media (forced-colors: active) {
@@ -58,6 +68,11 @@ html[data-mode="hc"] {
     --rule: GrayText;
     --bar-bg: Canvas;
     --bar-ink: CanvasText;
+    --soft-ink: CanvasText;
+    --dim-ink: GrayText;
+    --hair: CanvasText;
+    --hover: Canvas;
+    --pick: Canvas;
     --btn-bg: Canvas;
     --btn-line: CanvasText;
     --sel-bg: Highlight;
@@ -65,11 +80,11 @@ html[data-mode="hc"] {
     --focus: Highlight;
     --halo: Canvas;
     --ok-ink: CanvasText;
-    --ok-bg: Canvas;
     --warn-ink: CanvasText;
     --warn-bg: Canvas;
     --edge: CanvasText;
     --shade: none;
+    --lift: none;
   }
 }
 
@@ -122,7 +137,7 @@ html[data-size="large"] .tp-text {
 
 html {
   background: var(--desk);
-  scroll-padding-top: calc(var(--bar-h, 57px) + 1px);
+  scroll-padding-top: calc(var(--bar-h, 45px) + 1px);
   scroll-padding-bottom: 30vh;
 }
 body {
@@ -150,35 +165,46 @@ body {
   z-index: 10;
   background: var(--bar-bg);
   color: var(--bar-ink);
-  border-bottom: 1px solid var(--btn-line);
+  border-bottom: 1px solid var(--hair);
 }
 #toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px 10px;
-  padding: 6px 10px;
+  gap: 2px 6px;
+  padding: 4px 12px;
 }
 .grp {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
+}
+.grp + .grp {
+  margin-left: 6px;
+  padding-left: 10px;
+  border-left: 1px solid var(--hair);
 }
 
 .btn {
-  font: 600 14px/1.3 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  min-height: 44px;
-  min-width: 44px;
-  padding: 9px 10px;
-  border: 1px solid var(--btn-line);
+  font: 500 14px/1.3 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  min-height: 36px;
+  min-width: 36px;
+  padding: 7px 11px;
+  border: 1px solid transparent;
   border-radius: 6px;
-  background: var(--btn-bg);
+  background: transparent;
   color: var(--bar-ink);
   cursor: pointer;
 }
 .btn[aria-disabled="true"] {
-  color: color-mix(in srgb, var(--bar-ink) 65%, var(--btn-bg));
+  color: var(--dim-ink);
   cursor: default;
+}
+@media (any-pointer: coarse) {
+  .btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }
 .btn:focus-visible,
 dialog .btn:focus,
@@ -195,11 +221,16 @@ html[data-mode="hc"] dialog {
 }
 @media (hover: hover) and (pointer: fine) {
   .btn:hover {
-    border-color: var(--bar-ink);
+    background: var(--hover);
+  }
+  .btn[aria-disabled="true"]:hover {
+    background: transparent;
   }
 }
-
 @media (forced-colors: active) {
+  .btn {
+    border-color: ButtonBorder;
+  }
   .btn:focus-visible,
   dialog .btn:focus,
   dialog input:focus {
@@ -214,13 +245,12 @@ html[data-mode="hc"] dialog {
 #status {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   box-sizing: border-box;
-  margin: 0;
-  padding: 6px 8px;
+  margin: 0 0 0 6px;
+  padding: 0;
   font: 400 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  border: 1px solid var(--btn-line);
-  border-radius: 6px;
+  color: var(--soft-ink);
   white-space: nowrap;
   min-width: 22ch;
 }
@@ -236,6 +266,7 @@ html[data-mode="hc"] dialog {
 }
 #statusName {
   display: inline-block;
+  margin-left: 3px;
   vertical-align: bottom;
   max-width: 9ch;
   overflow: hidden;
@@ -244,7 +275,6 @@ html[data-mode="hc"] dialog {
   text-overflow: ellipsis;
 }
 #status[data-state="clean"] {
-  background: var(--ok-bg);
   color: var(--ok-ink);
 }
 #storageWarning {
@@ -344,8 +374,8 @@ html[data-mode="hc"] dialog {
 }
 
 dialog {
-  border: 2px solid var(--bar-ink);
-  border-radius: 12px;
+  border: 1px solid var(--hair);
+  border-radius: 10px;
   background: var(--bar-bg);
   color: var(--bar-ink);
   padding: 20px;
@@ -354,26 +384,37 @@ dialog {
   width: calc(100% - 32px);
   max-height: calc(100dvh - 32px);
   overflow: auto;
+  box-shadow: var(--lift);
   font: 400 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 dialog::backdrop {
-  background: rgb(0 0 0 / 55%);
+  background: rgb(0 0 0 / 45%);
 }
 dialog h2 {
-  margin: 0 0 8px;
-  font-size: 20px;
+  margin: 0 0 16px;
+  font: 600 18px/1.3 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 dialog p {
   margin: 0 0 16px;
 }
+dialog .btn {
+  border-color: var(--hair);
+}
 .dlg-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 8px;
 }
 .btn-safe {
   background: var(--sel-bg);
+  border-color: var(--sel-bg);
   color: var(--sel-ink);
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn-safe:hover {
+    background: var(--sel-bg);
+    opacity: 0.88;
+  }
 }
 #settingsDlg {
   max-width: 400px;
@@ -382,30 +423,51 @@ dialog p {
 }
 #settingsForm fieldset {
   border: 0;
-  margin: 0 0 12px;
+  margin: 0 0 18px;
   padding: 0;
   min-width: 0;
 }
 #settingsForm legend {
-  font-weight: 600;
+  font: 600 12px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--soft-ink);
   padding: 0 0 6px;
 }
 .setting-choice {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   box-sizing: border-box;
-  min-height: 44px;
-  margin-bottom: 4px;
-  padding: 4px 10px;
-  border: 1px solid var(--btn-line);
+  min-height: 38px;
+  padding: 2px 8px;
+  border: 1px solid transparent;
   border-radius: 6px;
-  background: var(--btn-bg);
   cursor: pointer;
 }
+@media (any-pointer: coarse) {
+  .setting-choice {
+    min-height: 44px;
+  }
+}
 .setting-choice:has(input:checked) {
+  background: var(--pick);
+}
+html[data-mode="hc"] .setting-choice:has(input:checked) {
   border-color: var(--focus);
-  box-shadow: none;
+}
+@media (forced-colors: active) {
+  .setting-choice:has(input:checked) {
+    border-color: Highlight;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .setting-choice:hover {
+    background: var(--hover);
+  }
+  .setting-choice:has(input:checked):hover {
+    background: var(--pick);
+  }
 }
 .setting-choice input {
   width: 18px;
@@ -444,7 +506,7 @@ dialog p {
 .color-preview {
   min-width: 40px;
   padding: 2px 4px;
-  border: 1px solid #6b7280;
+  border: 1px solid #b9bcc0;
   border-radius: 4px;
   font: 400 20px/1.3 "Liberation Serif", "Times New Roman", Times, serif;
 }
@@ -458,16 +520,19 @@ dialog p {
 }
 #settingsAbout {
   margin-top: 20px;
-  padding-top: 12px;
-  border-top: 1px solid var(--btn-line);
+  padding-top: 14px;
+  border-top: 1px solid var(--hair);
+  color: var(--soft-ink);
   font-size: 12px;
   line-height: 1.5;
 }
 #settingsRecovery {
-  margin-top: 12px;
+  margin-top: 4px;
 }
+#settingsReset,
 #settingsRecover {
   width: 100%;
+  padding-left: 8px;
   text-align: left;
 }
 #recoveryPanel {
@@ -491,7 +556,7 @@ dialog p {
   align-items: center;
   gap: 8px 12px;
   padding: 10px;
-  border: 1px solid var(--btn-line);
+  border: 1px solid var(--hair);
   border-radius: 6px;
   background: var(--btn-bg);
 }
@@ -515,7 +580,9 @@ dialog p {
 }
 #settingsAbout h3 {
   margin: 0 0 6px;
-  font-size: 13px;
+  font: 600 12px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 #settingsAbout p {
   margin: 3px 0;
@@ -534,7 +601,7 @@ dialog p {
   margin: 16px -20px -20px;
   padding: 12px 20px 20px;
   justify-content: flex-end;
-  border-top: 1px solid var(--btn-line);
+  border-top: 1px solid var(--hair);
   background: var(--bar-bg);
 }
 .field-label {
