@@ -595,7 +595,7 @@ dialog .btn {
   .page {
     box-sizing: content-box;
     width: 720px;
-    padding: 48px;
+    padding: 48px 48px 0;
     break-after: page;
     page-break-after: always;
   }
