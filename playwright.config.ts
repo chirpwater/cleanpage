@@ -2,6 +2,9 @@ import { defineConfig } from "@playwright/test";
 import { join } from "node:path";
 import { OUT } from "./tests/e2e/helpers.js";
 
+const PORT = process.env["TP_PORT"] ?? "4173";
+const HEADERS_PORT = process.env["TP_HEADERS_PORT"] ?? "4174";
+
 export default defineConfig({
   testDir: "tests/e2e",
   fullyParallel: false,
@@ -10,7 +13,7 @@ export default defineConfig({
   reporter: [["list"]],
   timeout: 120_000,
   use: {
-    baseURL: "http://127.0.0.1:4173/",
+    baseURL: `http://127.0.0.1:${PORT}/`,
     viewport: { width: 1366, height: 768 },
     deviceScaleFactor: 1,
   },
@@ -22,7 +25,7 @@ export default defineConfig({
     },
     {
       name: "headers",
-      use: { browserName: "chromium", baseURL: "http://127.0.0.1:4174/" },
+      use: { browserName: "chromium", baseURL: `http://127.0.0.1:${HEADERS_PORT}/` },
       testMatch: /headers\.spec\.ts/,
     },
     {
@@ -57,14 +60,14 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: "npm run build && npm run preview",
-      url: "http://127.0.0.1:4173/",
+      command: `npm run build && npx vite preview --port ${PORT} --strictPort`,
+      url: `http://127.0.0.1:${PORT}/`,
       reuseExistingServer: !process.env["CI"],
       timeout: 120_000,
     },
     {
       command: "node tests/server/headers-server.mjs",
-      url: "http://127.0.0.1:4174/",
+      url: `http://127.0.0.1:${HEADERS_PORT}/`,
       reuseExistingServer: !process.env["CI"],
       timeout: 120_000,
     },
