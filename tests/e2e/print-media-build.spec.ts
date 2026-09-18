@@ -51,5 +51,7 @@ test("building the print DOM under print media gives the same sheets as the scre
 test("the built site serves the privacy statement", async ({ request }) => {
   const res = await request.get("/PRIVACY.txt");
   expect(res.status()).toBe(200);
-  expect(await res.text()).toContain("nothing you type is ever sent anywhere.");
+  expect(await res.text()).toContain(
+    "We do not collect, receive, store, or otherwise obtain any information about you",
+  );
 });
