@@ -16,6 +16,10 @@ We do not use analytics, tracking, advertising identifiers, or measurement of an
 
 Everything you write in Clean Page is processed entirely on the device you are using. Your writing is kept on that device so that it is still there when you come back, and it is kept nowhere else. It is never sent to us, and it is never sent to anyone else.
 
+## Getting the page to you
+
+Clean Page must be downloaded to your device before it can run, and that download is handled by a hosting provider, in the ordinary way that any website reaches any visitor. To deliver the files, that provider necessarily handles your device's internet address, exactly as it would for any page you visit. We do not receive that information, we do not ask for it, and we do not keep it. Once Clean Page has loaded, it sends nothing further, and your device works alone.
+
 ## We do not monetize your information
 
 ChirpWater does not sell, rent, share, license, or otherwise monetize your information, and we do not permit anyone else to do so. We could not do any of these things even if we wished to, because we never collect your information in the first place.
