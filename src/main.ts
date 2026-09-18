@@ -212,7 +212,7 @@ btnNew.addEventListener("click", () => {
       files.forgetFile();
       loadDocument("");
     } catch {
-      tell(S.errOpen);
+      tell(S.errNew);
     } finally {
       unlock();
       endFileAction();

@@ -58,6 +58,7 @@ const IN_CODE = [
   "dlgOpenGo",
   "dlgKeep",
   "errSave",
+  "errNew",
   "errOpen",
   "errNotText",
   "errOk",

@@ -75,6 +75,7 @@ export const S = {
 
   // Problems, in plain words
   errSave: "Sorry, that did not save. Try again.",
+  errNew: "Sorry, that did not start a new page. Try again.",
   errOpen: "Sorry, that file did not open. Try again.",
   errNotText: "That file isn't plain writing.",
   errOk: "OK",
