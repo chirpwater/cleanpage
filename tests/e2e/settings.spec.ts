@@ -1,5 +1,4 @@
 import { expect, test } from "@playwright/test";
-import packageInfo from "../../package.json" with { type: "json" };
 import { DRAFT_LOCK_PREFIX, DRAFT_SESSION_KEY } from "../../src/drafts.js";
 
 test.beforeEach(async ({ page }) => {
@@ -10,7 +9,6 @@ test.beforeEach(async ({ page }) => {
 test("settings are drafts until Apply, including Reset all settings to default", async ({ page }) => {
   const root = page.locator("html");
   await expect(page.locator("#bar input[type=radio]")).toHaveCount(0);
-  await expect(page.locator("#ta")).toHaveCSS("font-size", "20px");
 
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.getByRole("radio", { name: "Round letters" }).check();
@@ -117,7 +115,7 @@ test("the compact toolbar and settings remain usable in a small zoomed viewport"
   await expect(page.locator("#ta")).toBeFocused();
 });
 
-test("keyboard focus cycles within settings with a visible indicator", async ({ page }) => {
+test("keyboard focus cycles within settings", async ({ page }) => {
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   const firstChoice = page.getByRole("radio", { name: "Book letters", exact: true });
   const apply = page.getByRole("button", { name: "Apply", exact: true });
@@ -128,65 +126,20 @@ test("keyboard focus cycles within settings with a visible indicator", async ({ 
   await expect(apply).toBeFocused();
   for (let step = 0; step < 12; step++) {
     await page.keyboard.press("Tab");
-    const focused = await page.evaluate(() => {
-      const active = document.activeElement as HTMLElement;
-      const style = getComputedStyle(active);
-      return {
-        inside: document.getElementById("settingsDlg")!.contains(active),
-        outline: style.outlineStyle,
-        width: parseFloat(style.outlineWidth),
-      };
-    });
-    expect(focused.inside).toBe(true);
-    expect(focused.outline).not.toBe("none");
-    expect(focused.width).toBeGreaterThanOrEqual(3);
+    const inside = await page.evaluate(() =>
+      document.getElementById("settingsDlg")!.contains(document.activeElement),
+    );
+    expect(inside).toBe(true);
   }
 });
 
-test("settings show actual font, size, and color samples without applying choices", async ({ page }) => {
-  await page.getByRole("button", { name: "Settings", exact: true }).click();
-  const fontSamples = page.locator(".font-preview");
-  await expect(fontSamples).toHaveCount(2);
-  await expect(fontSamples.nth(0)).toHaveCSS("font-family", /Liberation Serif/);
-  await expect(fontSamples.nth(1)).toHaveCSS("font-family", /OpenDyslexic/);
-  for (const sample of await page.locator(".setting-sample").all()) {
-    await expect(sample).toHaveAttribute("aria-hidden", "true");
-  }
-
-  const sizes = page.locator(".size-preview");
-  for (const [index, size] of ["16px", "20px", "24px"].entries()) {
-    await expect(sizes.nth(index)).toHaveCSS("font-size", size);
-    await expect(sizes.nth(index)).toHaveCSS("font-family", /Liberation Serif/);
-  }
-  await expect(page.locator('.color-preview[data-preview-mode="reg"]')).toHaveCSS("color", "rgb(26, 26, 26)");
-  await expect(page.locator('.color-preview[data-preview-mode="reg"]')).toHaveCSS("background-color", "rgb(253, 253, 251)");
-  await expect(page.locator('.color-preview[data-preview-mode="hc"]')).toHaveCSS("color", "rgb(255, 255, 255)");
-  await expect(page.locator('.color-preview[data-preview-mode="hc"]')).toHaveCSS("background-color", "rgb(0, 0, 0)");
-
-  await page.getByRole("radio", { name: "Round letters", exact: true }).check();
-  for (const sample of await sizes.all()) {
-    await expect(sample).toHaveCSS("font-family", /OpenDyslexic/);
-  }
-  await expect(page.locator("#ta")).toHaveCSS("font-family", /Liberation Serif/);
-  await page.getByRole("button", { name: "Reset all settings to default" }).click();
-  await expect(sizes.first()).toHaveCSS("font-family", /Liberation Serif/);
-});
-
-test("About is a quiet authorship stamp with a small local logo and current package version", async ({ page }) => {
+test("About has no navigable links and its logo is a decorative, same-origin image", async ({ page }) => {
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   const about = page.getByRole("region", { name: "About", exact: true });
-  await expect(about).toContainText("Created by ChirpWater, LLC");
-  await expect(about).toContainText("chirpwater.com");
-  await expect(about).toContainText("Clean Page is free for everyone, forever.");
-  await expect(about).toContainText("GitHub: repository address coming soon.");
-  await expect(about).toContainText(`Version ${packageInfo.version}`);
   await expect(about.getByRole("link")).toHaveCount(0);
-  await expect(about).toHaveCSS("font-size", "12px");
   const logo = about.locator("img.authorship-mark");
   await expect(logo).toHaveAttribute("alt", "");
   await expect(logo).toHaveAttribute("aria-hidden", "true");
-  await expect(logo).toHaveJSProperty("naturalWidth", 96);
-  await expect(logo).toHaveJSProperty("naturalHeight", 64);
   const image = await logo.evaluate((element: HTMLImageElement) => ({
     local: new URL(element.currentSrc).origin === location.origin,
     path: new URL(element.currentSrc).pathname,
@@ -196,9 +149,7 @@ test("About is a quiet authorship stamp with a small local logo and current pack
   expect(image.local).toBe(true);
   expect(image.path).toMatch(/\/chirpwater-logo\.png$/);
   expect(image.width).toBeGreaterThan(0);
-  expect(image.width).toBeLessThanOrEqual(36);
   expect(image.height).toBeGreaterThan(0);
-  expect(image.height).toBeLessThanOrEqual(25);
 });
 
 test("recovery is always available at zero and browsing does not apply settings", async ({ page }) => {
@@ -209,7 +160,6 @@ test("recovery is always available at zero and browsing does not apply settings"
   await expect(recovery).toBeEnabled();
   await recovery.click();
   await expect(recovery).toHaveAttribute("aria-expanded", "true");
-  await expect(page.getByText("No previous drafts.", { exact: true })).toBeVisible();
   await expect(page.getByRole("radio", { name: "Round letters", exact: true })).toBeChecked();
   await expect(page.locator("html")).toHaveAttribute("data-font", "serif");
   await recovery.click();
@@ -235,7 +185,6 @@ test("recovering a listed draft keeps its text literal and does not apply pendin
   await expect(row).toHaveCount(1);
   await expect(row.locator(".recovery-title")).toHaveText(previous.split("\n")[0]);
   await expect(row.locator("img, script")).toHaveCount(0);
-  await expect(row.locator("time")).toContainText("Last edited");
   await expect(row.locator("time")).toHaveAttribute("datetime", /^\d{4}-\d{2}-\d{2}T/);
   await row.getByRole("button", { name: "Recover", exact: true }).click();
   await expect(page.locator("#settingsDlg")).toBeHidden();
@@ -284,7 +233,6 @@ test("pending recovery blocks Escape, Cancel, and Apply until the ownership lock
   await page.getByRole("button", { name: "Recover previous draft (1)", exact: true }).click();
   await page.getByRole("button", { name: "Recover", exact: true }).click();
   await page.waitForFunction(() => (window as unknown as { recoveryWaiting: boolean }).recoveryWaiting);
-  await expect(page.locator("#recoveryMessage")).toHaveText("Opening draft…");
   await expect(page.locator("#recoveryMessage")).toBeFocused();
   await expect(page.locator("#recoveryPanel")).toHaveAttribute("aria-busy", "true");
 

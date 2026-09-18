@@ -27,9 +27,6 @@ export const LINES_PER_PAGE = 30;
 export const PAGE_BODY_H = 960;
 export const MARGIN = 48;
 export const CONTENT_W = 720;
-export const SHEET_W = 816;
-
-export type Engine = "chromium" | "firefox" | "webkit";
 
 /**
  * Why a browser project cannot run here, or null if it can.

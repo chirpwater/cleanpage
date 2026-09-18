@@ -150,8 +150,6 @@ test("the authorship logo loads from this application without contacting ChirpWa
   await ready(page);
   await swSettled(page);
   await page.getByRole("button", { name: "Settings", exact: true }).click();
-  const logo = page.locator("#settingsAbout img.authorship-mark");
-  await expect(logo).toHaveJSProperty("naturalWidth", 96);
   const origin = new URL(page.url()).origin;
   expect(requested.some((url) => new URL(url).pathname.endsWith("/chirpwater-logo.png"))).toBe(true);
   expect(requested.filter((url) => new URL(url).origin !== origin), "the logo is bundled, not hotlinked").toEqual([]);

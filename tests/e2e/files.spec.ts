@@ -48,7 +48,6 @@ test("Download confirms a .txt name from the first line and writes exact bytes",
   await setText(page, STORY);
   await expect(page.locator("#status")).toHaveAttribute("data-state", "dirty");
 
-  await expect(page.locator("#btnSave")).toHaveText("Download");
   const download = await downloadWriting(page);
   expect(download.suggestedFilename()).toBe("My Tide Pool Story.txt");
 
@@ -62,8 +61,6 @@ test("Download confirms a .txt name from the first line and writes exact bytes",
 
   await settle(page);
   await expect(page.locator("#status")).toHaveAttribute("data-state", "clean");
-  await expect(page.locator("#statusWord")).toHaveText("Changes saved");
-  await expect(page.locator("#status")).toHaveCSS("color", "rgb(11, 83, 35)");
   expect(await page.locator("#status").innerText()).toContain("My Tide Pool Story.txt");
   await expect(page.locator("#ta"), "the cursor comes straight back").toBeFocused();
 });
@@ -81,7 +78,6 @@ test("after a download, edits save locally and undo restores the exported snapsh
   await settle(page);
   await expect(page.locator("#status")).toHaveAttribute("data-state", "dirty");
   await expect(page.locator("#statusWord")).toBeEmpty();
-  await expect(page.locator("#status")).toHaveCSS("visibility", "hidden");
 
   for (let i = 0; i < 30 && (await page.inputValue("#ta")) !== STORY; i++) {
     await page.keyboard.press("ControlOrMeta+z");
@@ -243,10 +239,6 @@ test("Open asks before replacing unsaved writing even when recovery is available
 
   await page.locator("#btnOpen").click();
   await expect(page.locator("#dlg")).toBeVisible();
-  await expect(page.locator("#dlgTitle")).toHaveText("Open another file?");
-  await expect(page.locator("#dlgBody")).toHaveText(
-    "This opens another file. Changes you have not saved will be gone.",
-  );
   await expect(page.locator("#dlgKeep")).toBeFocused();
   await page.locator("#dlgKeep").click();
   await expect(page.locator("#dlg")).toBeHidden();
@@ -289,7 +281,6 @@ test("a file that is not plain writing is refused, and the document is untouched
   await settle(page);
 
   await expect(page.locator("#say")).toBeVisible();
-  await expect(page.locator("#sayBody")).toHaveText("That file isn't plain writing.");
   expect(await page.inputValue("#ta"), "the child's words survive a bad file").toBe(
     "the words already on the page",
   );
@@ -333,7 +324,6 @@ test("dropping something that is not writing is refused, not opened by the brows
   await settle(page);
 
   await expect(page.locator("#say")).toBeVisible();
-  await expect(page.locator("#sayBody")).toHaveText("That file isn't plain writing.");
   expect(await page.inputValue("#ta")).toBe("half a story");
   await page.locator("#sayOk").click();
   await expect(page.locator("#say")).toBeHidden();

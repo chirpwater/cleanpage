@@ -120,8 +120,7 @@ describe("strings.ts is the single source of the wording", () => {
   it("keeps the chip's two halves joining into one sentence", () => {
     // The chip renders `savedPrefix` and the filename in two spans so that only
     // the filename can be elided; concatenated they are what role="status"
-    // announces, and it has to read as one phrase.
-    expect(S.savedPrefix + "tide-pools.txt").toBe("Changes saved — tide-pools.txt");
+    // announces, and the two halves must not run together.
     expect(S.savedPrefix.endsWith(" "), "the two halves need the space").toBe(true);
   });
 

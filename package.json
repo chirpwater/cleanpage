@@ -16,9 +16,7 @@
     "test:e2e": "playwright test",
     "test": "npm run typecheck && npm run test:unit && npm run test:e2e"
   },
-  "dependencies": {},
   "devDependencies": {
-    "@axe-core/playwright": "4.11.0",
     "@playwright/test": "1.62.0",
     "@types/node": "^24.13.5",
     "@types/pngjs": "^6.0.5",

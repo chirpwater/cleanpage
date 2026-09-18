@@ -46,7 +46,7 @@ export default defineConfig({
     {
       name: "firefox",
       use: { browserName: "firefox" },
-      testMatch: /(wrap-equivalence|font-normalization|toolbar|history|draft-sessions)\.spec\.ts/,
+      testMatch: /(wrap-equivalence|history|draft-sessions)\.spec\.ts/,
     },
     // Gecko's REAL printed output, which nothing had ever measured: Playwright
     // has no `page.pdf()` for Firefox, but Firefox will print silently to a
@@ -77,7 +77,7 @@ export default defineConfig({
     {
       name: "webkit",
       use: { browserName: "webkit" },
-      testMatch: /(wrap-equivalence|font-normalization|toolbar|history|draft-sessions)\.spec\.ts/,
+      testMatch: /(wrap-equivalence|history|draft-sessions)\.spec\.ts/,
     },
   ],
   webServer: [

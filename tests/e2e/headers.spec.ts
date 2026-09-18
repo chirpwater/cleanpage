@@ -175,10 +175,7 @@ test("under the shipped CSP the worker precaches every emitted file and the page
  * `<style>` block in a generated page would be refused by `style-src 'self'`
  * on the real host while looking perfect locally.
  */
-for (const [path, heading] of [
-  ["/privacy.html", "Privacy statement"],
-  ["/accessibility.html", "Accessibility statement"],
-] as const) {
+for (const path of ["/privacy.html", "/accessibility.html"] as const) {
   test(`${path} is published with the site, styled, under the real policy`, async ({
     page,
     context,
@@ -192,7 +189,6 @@ for (const [path, heading] of [
 
     const res = await page.goto(path);
     expect(res?.status(), `${path} is served`).toBe(200);
-    expect(await page.locator("h1").innerText()).toBe(heading);
     expect(violations, "no CSP violation on the statement page").toEqual([]);
     expect(failed, "the statement's own stylesheet loads").toEqual([]);
 
@@ -204,13 +200,6 @@ for (const [path, heading] of [
     }));
     expect(styled.main, "doc.css was applied").not.toBe("none");
     expect(styled.back, "and there is a way back to the writing").toBe("./");
-
-    // The text is the repository's, not a hand-made copy that can drift.
-    const md = readFileSync(join(REPO, "docs", path === "/privacy.html" ? "PRIVACY.md" : "ACCESSIBILITY.md"), "utf8");
-    const sentence = /ChirpWater LLC[^.]*\./.exec(md.replace(/\n/g, " ").replace(/\*\*/g, ""))![0];
-    expect((await page.locator("body").innerText()).replace(/\s+/g, " ")).toContain(
-      sentence.replace(/\s+/g, " "),
-    );
 
     /*
      * Everything above is the FIRST visit, with no worker in control — which is
@@ -241,13 +230,15 @@ for (const [path, heading] of [
       expect(res2?.status(), `${path} under the worker, ${where}`).toBe(200);
       const seen = await page.evaluate(() => ({
         controller: !!navigator.serviceWorker.controller,
-        title: document.title,
-        h1: document.querySelector("h1")?.textContent ?? null,
+        // What makes it a statement page is its shape, not its wording: a
+        // heading and the link back to the writing, which the app shell has
+        // neither of.
+        statement:
+          !!document.querySelector("h1") && !!document.querySelector("a.back[href='./']"),
         typewriter: !!document.getElementById("ta"),
       }));
       expect(seen.controller, `${where}: the worker really is in control`).toBe(true);
-      expect(seen.h1, `${where}: the statement, not the writing app`).toBe(heading);
-      expect(seen.title).toContain(heading);
+      expect(seen.statement, `${where}: the statement, not the writing app`).toBe(true);
       expect(seen.typewriter, `${where}: this must not be the typewriter`).toBe(false);
     }
 

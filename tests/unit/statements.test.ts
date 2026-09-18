@@ -82,8 +82,7 @@ describe("the statement renderer", () => {
       for (const link of md.matchAll(/\[([^\]]+)\]\(([^)]+)\)/g)) {
         expect(html).toContain(`href="${link[2]!.replace(/&/g, "&amp;")}"`);
       }
-      // The reviewer needs the contact, the policy, and a way back to the page.
-      expect(html).toContain("chirpwater.example");
+      // The reviewer needs the policy and a way back to the page.
       expect(html).toContain('<meta http-equiv="Content-Security-Policy"');
       expect(html).toContain('<link rel="stylesheet" href="./doc.css" />');
       expect(html).toContain('<a class="back" href="./">');

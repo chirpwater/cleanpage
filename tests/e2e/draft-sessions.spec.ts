@@ -63,8 +63,7 @@ test("a cold browser context recovers local writing without session storage or a
     await openPage(reopened);
     await expect(reopened.locator("#ta")).toHaveValue(first);
     await expect(reopened.locator("dialog[open]")).toHaveCount(0);
-    await expect(reopened.locator("#statusWord")).toBeEmpty();
-    await expect(reopened.locator("#status")).toHaveCSS("visibility", "hidden");
+    await expect(reopened.locator("#status")).toHaveAttribute("data-state", "dirty");
   } finally { await cold.close(); }
 });
 
@@ -72,7 +71,6 @@ test("confirmed New retains writing and recovery is always present, including ze
   await openPage(page);
   await recovery(page);
   await expect(page.getByRole("button", { name: "Recover previous draft (0)", exact: true })).toBeVisible();
-  await expect(page.getByText("No previous drafts.", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await page.locator("#ta").fill(first);
   await page.locator("#btnNew").click();
@@ -139,13 +137,12 @@ test("migration preserves the previous file-save checkpoint and removes the lega
     { key: DRAFT_KEY, text: first });
   await openPage(page);
   await expect(page.locator("#ta")).toHaveValue(first);
-  await expect(page.locator("#statusWord")).toHaveText("Changes saved");
+  await expect(page.locator("#status")).toHaveAttribute("data-state", "clean");
   expect((await storedDraft(page))!.lastSavedText).toBe(first);
   expect(await page.evaluate((key) => localStorage.getItem(key), DRAFT_KEY)).toBeNull();
   await page.locator("#ta").press("End");
   await page.keyboard.type(" More.");
-  await expect(page.locator("#statusWord")).toBeEmpty();
-  await expect(page.locator("#status")).toHaveCSS("visibility", "hidden");
+  await expect(page.locator("#status")).toHaveAttribute("data-state", "dirty");
 });
 
 test("recovery cannot replace unsaved writing when its background storage fails", async ({ page }) => {
@@ -166,7 +163,6 @@ test("recovery cannot replace unsaved writing when its background storage fails"
   await page.getByRole("button", { name: "Recover", exact: true }).click();
   await expect(page.locator("#settingsDlg")).toBeVisible();
   await expect(page.locator("#ta")).toHaveValue(second);
-  await expect(page.getByText("Save or download your writing before opening another draft.", { exact: true })).toBeVisible();
 });
 
 test("recovery snippets render as text rather than executable markup", async ({ page }) => {

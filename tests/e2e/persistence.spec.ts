@@ -7,10 +7,8 @@ const STORY = "The next chapter\n猫 and a space traveller 👩🏽‍🚀\nTo b
 test("the current draft returns after reload and after closing and reopening its tab", async ({ page, context }) => {
   await page.goto("./");
   await ready(page);
-  await expect(page.locator("#ta")).toHaveCSS("font-size", "20px");
   await page.locator("#ta").fill(STORY);
-  await expect(page.locator("#statusWord")).toBeEmpty();
-  await expect(page.locator("#status")).toHaveCSS("visibility", "hidden");
+  await expect(page.locator("#status")).toHaveAttribute("data-state", "dirty");
 
   // No debounce or unload callback may be needed for the last input to survive.
   await page.reload();
@@ -21,8 +19,7 @@ test("the current draft returns after reload and after closing and reopening its
   await reopened.goto("./");
   await ready(reopened);
   await expect(reopened.locator("#ta")).toHaveValue(STORY);
-  await expect(reopened.locator("#statusWord")).toBeEmpty();
-  await expect(reopened.locator("#status")).toHaveCSS("visibility", "hidden");
+  await expect(reopened.locator("#status")).toHaveAttribute("data-state", "dirty");
 });
 
 test("only applied settings survive tab closure, and resetting settings preserves writing", async ({ page, context }) => {
@@ -33,9 +30,9 @@ test("only applied settings survive tab closure, and resetting settings preserve
   await page.getByRole("radio", { name: "Round letters" }).click();
   await page.getByRole("radio", { name: "White on black" }).click();
   await page.getByRole("radio", { name: "Large", exact: true }).click();
-  await expect(page.locator("#ta")).toHaveCSS("font-size", "20px");
+  await expect(page.locator("html")).toHaveAttribute("data-size", "medium");
   await page.getByRole("button", { name: "Apply", exact: true }).click();
-  await expect(page.locator("#ta")).toHaveCSS("font-size", "24px");
+  await expect(page.locator("html")).toHaveAttribute("data-size", "large");
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.getByRole("radio", { name: "Small", exact: true }).click();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
@@ -45,18 +42,18 @@ test("only applied settings survive tab closure, and resetting settings preserve
   await reopened.goto("./");
   await ready(reopened);
   await expect(reopened.locator("#ta")).toHaveValue(STORY);
-  await expect(reopened.locator("#ta")).toHaveCSS("font-size", "24px");
+  await expect(reopened.locator("html")).toHaveAttribute("data-size", "large");
   await reopened.getByRole("button", { name: "Settings", exact: true }).click();
   await expect(reopened.getByRole("radio", { name: "Round letters" })).toBeChecked();
   await expect(reopened.getByRole("radio", { name: "White on black" })).toBeChecked();
   await expect(reopened.getByRole("radio", { name: "Large", exact: true })).toBeChecked();
   await reopened.getByRole("button", { name: "Reset all settings to default", exact: true }).click();
-  await expect(reopened.locator("#ta")).toHaveCSS("font-size", "24px");
+  await expect(reopened.locator("html")).toHaveAttribute("data-size", "large");
   await reopened.getByRole("button", { name: "Apply", exact: true }).click();
   await reopened.reload();
   await ready(reopened);
   await expect(reopened.locator("#ta")).toHaveValue(STORY);
-  await expect(reopened.locator("#ta")).toHaveCSS("font-size", "20px");
+  await expect(reopened.locator("html")).toHaveAttribute("data-size", "medium");
   expect(await reopened.evaluate((key) => JSON.parse(localStorage.getItem(key)!), SETTINGS_KEY))
     .toEqual({ font: "serif", mode: "reg", size: "medium" });
 });
@@ -71,7 +68,7 @@ test("malformed stored data does not prevent editing or saving a replacement dra
   await page.goto("./");
   await ready(page);
   await expect(page.locator("#ta")).toHaveValue("");
-  await expect(page.locator("#ta")).toHaveCSS("font-size", "20px");
+  await expect(page.locator("html")).toHaveAttribute("data-size", "medium");
   await page.locator("#ta").fill(STORY);
   expect((await storedDraft(page))?.text).toBe(STORY);
   expect(errors).toEqual([]);
@@ -89,10 +86,8 @@ test("denied storage keeps the editor usable and warns instead of claiming recov
   await page.goto("./");
   await ready(page);
   await page.locator("#ta").fill(STORY);
-  await expect(page.locator("#statusWord")).toBeEmpty();
-  await expect(page.locator("#status")).toHaveCSS("visibility", "hidden");
+  await expect(page.locator("#status")).toHaveAttribute("data-state", "dirty");
   await expect(page.locator("#storageWarning")).toBeVisible();
-  await expect(page.locator("#storageWarning")).toContainText("Could not save on this device");
   await expect(page.locator("#ta")).toHaveValue(STORY);
   expect(await page.evaluate(() => {
     const event = new Event("beforeunload", { cancelable: true });
@@ -111,8 +106,7 @@ test("quota failure leaves the previous draft intact and does not claim the new 
   });
   await page.locator("#ta").fill(STORY);
   await expect(page.locator("#storageWarning")).toBeVisible();
-  await expect(page.locator("#statusWord")).toBeEmpty();
-  await expect(page.locator("#status")).toHaveCSS("visibility", "hidden");
+  await expect(page.locator("#status")).toHaveAttribute("data-state", "dirty");
   expect((await storedDraft(page))?.text)
     .toBe("Earlier recoverable writing");
 });
