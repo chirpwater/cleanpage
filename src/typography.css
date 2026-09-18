@@ -1,0 +1,33 @@
+/* Optical matching, not glyph distortion. The bundled OpenDyslexic face has
+   a much larger cap/x-height and unusually generous built-in sidebearings.
+   At 100px, its x/cap heights are 56/85px versus Liberation Serif's 46/65px.
+   An 80% uniform face scale gives 45/68px, while the requested 16/20/24px
+   sizes and 32/40/48px line boxes stay identical in all text consumers.
+
+   The font binary and its upstream family name are unchanged. The descriptor
+   also normalizes font samples and canvas measurements using the same face. */
+@font-face {
+  font-family: "OpenDyslexic";
+  src: url("/fonts/OpenDyslexic-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+  size-adjust: 80%;
+}
+
+:root {
+  /* The original 20px space was 16.94px; after scaling and these adjustments
+     it is 5.36px, close to Book letters' 5px. Tracking removes just 1.2px
+     from the face's generous sidebearings, retaining clear letter separation.
+     The round alphabet remains naturally wider; do not squeeze its glyphs. */
+  --round-letter-spacing: -0.06em;
+  --round-word-spacing: -0.35em;
+}
+
+html[data-font="dys"] .tp-text,
+.font-preview[data-preview-font="dys"],
+.size-preview[data-preview-font="dys"] {
+  font-family: "OpenDyslexic", sans-serif;
+  letter-spacing: var(--round-letter-spacing);
+  word-spacing: var(--round-word-spacing);
+}

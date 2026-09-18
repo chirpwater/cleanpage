@@ -1,0 +1,32 @@
+Clean Page
+Copyright 2026 ChirpWater LLC
+Licensed under the Apache License, Version 2.0.
+
+This product bundles the following fonts, each used unmodified under the
+SIL Open Font License, Version 1.1 (see LICENSES/OFL-1.1.txt):
+
+  Liberation Serif 2.1 (Regular) - public/fonts/LiberationSerif-Regular.woff2
+    Digitized data copyright (c) 2010 Google Corporation
+      with Reserved Font Names Arimo, Tinos and Cousine.
+    Copyright (c) 2012 Red Hat, Inc. with Reserved Font Name "Liberation".
+    https://github.com/liberationfonts/liberation-fonts
+    The upstream TrueType binary is committed alongside it as
+    public/fonts/LiberationSerif-Regular.ttf
+    (sha256 705903ae1382f0150f115d6f10a30f5b2f3d6ade649c474afe6366c39174fb65).
+    The WOFF2 is a lossless container conversion of that exact file, produced
+    by `woff2_compress LiberationSerif-Regular.ttf` (woff2 1.0.2) and
+    reproducible from it byte for byte
+    (sha256 92fb684da0b27c05c8e3b6c5ff071a062cbb3db7bc472c4099c209be89e87416).
+    The OFL permits it and it is universally treated as not a modification;
+    the glyph outlines, metrics and family name are unchanged. Upstream copyright text is kept verbatim in
+    public/fonts/OFL-LiberationFonts-copyright.txt.
+
+  OpenDyslexic 0.91.12 (Regular) - public/fonts/OpenDyslexic-Regular.woff2
+    Copyright (c) 2019-07-29 Abbie Gonzalez (https://abbiecod.es),
+      with Reserved Font Name "OpenDyslexic".
+    Copyright (c) 12/2012 - 2019
+    https://opendyslexic.org
+    Upstream licence and changelog are kept verbatim in
+    public/fonts/OFL-OpenDyslexic.txt and public/fonts/FONTLOG-OpenDyslexic.txt.
+
+"Clean Page" and "ChirpWater" are not licensed under the Apache License.

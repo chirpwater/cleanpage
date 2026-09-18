@@ -1,0 +1,79 @@
+/*
+ * The two statement pages that ship WITH the site (privacy.html,
+ * accessibility.html), generated at build time from docs/PRIVACY.md and
+ * docs/ACCESSIBILITY.md.
+ *
+ * A separate file, never an inline <style> block: the site's own
+ * Content-Security-Policy is `style-src 'self'`, so an inline stylesheet would
+ * be refused and the statement would be served unstyled on the host that
+ * enforces the policy — while looking perfect locally.
+ */
+:root {
+  color-scheme: light dark;
+  --doc-ink: #1a1a1a;
+  --doc-paper: #fdfdfb;
+  --doc-quiet: #44506b;
+  --doc-line: #c6cbd4;
+  --doc-link: #0b3ea8;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --doc-ink: #f2f2f2;
+    --doc-paper: #12161c;
+    --doc-quiet: #c2cadb;
+    --doc-line: #3a4452;
+    --doc-link: #9cc4ff;
+  }
+}
+body {
+  margin: 0;
+  background: var(--doc-paper);
+  color: var(--doc-ink);
+  font: 400 18px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+main {
+  max-width: 42em;
+  margin: 0 auto;
+  padding: 24px 16px 96px;
+}
+h1 {
+  font-size: 30px;
+  line-height: 1.2;
+  margin: 24px 0 16px;
+}
+h2 {
+  font-size: 22px;
+  line-height: 1.25;
+  margin: 32px 0 12px;
+}
+p,
+li {
+  margin: 0 0 12px;
+}
+ul {
+  padding-left: 22px;
+}
+code {
+  font-family: ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+  font-size: 0.92em;
+}
+a {
+  color: var(--doc-link);
+}
+a:focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: 2px;
+}
+.back {
+  display: inline-block;
+  min-height: 44px;
+  padding: 10px 0;
+  font-weight: 600;
+}
+footer {
+  margin-top: 40px;
+  padding-top: 12px;
+  border-top: 1px solid var(--doc-line);
+  color: var(--doc-quiet);
+  font-size: 16px;
+}

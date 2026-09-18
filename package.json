@@ -1,0 +1,35 @@
+{
+  "name": "cleanpage",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "description": "A web page that behaves like a sheet of paper in a typewriter.",
+  "scripts": {
+    "dev": "vite",
+    "dev:https": "CP_HTTPS=1 vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "preview:https": "CP_HTTPS=1 vite preview --host 0.0.0.0 --port 4443 --strictPort",
+    "typecheck": "tsc --noEmit",
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test",
+    "test": "npm run typecheck && npm run test:unit && npm run test:e2e"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@axe-core/playwright": "4.11.0",
+    "@playwright/test": "1.62.0",
+    "@types/node": "^24.13.5",
+    "@types/pngjs": "^6.0.5",
+    "pixelmatch": "7.2.0",
+    "playwright-core": "1.62.0",
+    "pngjs": "7.0.0",
+    "typescript": "5.9.3",
+    "vite": "6.4.3",
+    "vitest": "3.2.7"
+  },
+  "overrides": {
+    "playwright-core": "1.62.0"
+  }
+}

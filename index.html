@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en" translate="no" class="notranslate" data-font="serif" data-mode="reg" data-size="medium">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="google" content="notranslate" />
+    <meta name="color-scheme" content="light dark" />
+    <meta
+      name="description"
+      content="A web page that behaves like a sheet of paper in a typewriter. Nothing you write leaves your device."
+    />
+    <title>Clean Page</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <!-- The statements are published WITH the site (generated into dist/ from
+         docs/PRIVACY.md and docs/ACCESSIBILITY.md at build time). These two
+         links are the on-origin reference to them; neither adds anything a
+         child can see or reach from the writing surface. -->
+    <link rel="privacy-policy" href="./privacy.html" />
+    <link rel="help" href="./accessibility.html" />
+    <script type="module" src="./src/main.ts"></script>
+  </head>
+  <body>
+    <header id="bar">
+      <div id="toolbar" role="toolbar" aria-label="Writing tools">
+      <div class="grp" role="group" aria-label="File">
+        <button type="button" id="btnNew" class="btn" title="New document — Alt+F, then N" aria-keyshortcuts="Alt+F N">New</button>
+        <button type="button" id="btnOpen" class="btn" tabindex="-1" title="Open a text file — Ctrl+O" aria-keyshortcuts="Control+O">Open</button>
+        <button type="button" id="btnSave" class="btn" tabindex="-1" title="Save or download — Ctrl+S" aria-keyshortcuts="Control+S">Save</button>
+        <button type="button" id="btnPrint" class="btn" tabindex="-1" title="Print — Ctrl+P" aria-keyshortcuts="Control+P">Print</button>
+      </div>
+
+      <div class="grp" role="group" aria-label="Edit">
+        <button type="button" id="btnUndo" class="btn" aria-disabled="true" tabindex="-1" title="Undo — Ctrl+Z" aria-keyshortcuts="Control+Z">Undo</button>
+        <button type="button" id="btnRedo" class="btn" aria-disabled="true" tabindex="-1" title="Redo — Ctrl+Shift+Z" aria-keyshortcuts="Control+Shift+Z">Redo</button>
+      </div>
+
+      <p id="status" role="status" data-state="clean" data-empty="true">
+        <!-- Two spans, not one: the state words must never be clipped (a forced
+             SC 1.4.12 spacing grows the text while a `ch`-sized box cannot, and
+             "Nothing to save yet" lost its tail), while the filename is the one
+             thing DECISIONS 9.8 ever meant to elide. -->
+        <span class="gl" aria-hidden="true">&#10003;</span><span id="statusText"><span id="statusWord">Changes saved</span><span id="statusName"></span></span>
+      </p>
+
+      <button type="button" id="btnSettings" class="btn" tabindex="-1" title="Settings — Alt+T" aria-keyshortcuts="Alt+T">Settings</button>
+      </div>
+    </header>
+
+    <main id="desk">
+      <div id="sheet">
+        <div id="breaks" aria-hidden="true"></div>
+        <textarea
+          id="ta"
+          class="tp-text"
+          wrap="soft"
+          autofocus
+          aria-label="Your writing"
+          aria-describedby="tabhint"
+          spellcheck="false"
+          autocorrect="off"
+          autocapitalize="off"
+          autocomplete="off"
+          writingsuggestions="false"
+          data-gramm="false"
+          data-gramm_editor="false"
+          data-enable-grammarly="false"
+        ></textarea>
+      </div>
+
+      <!-- Inside the landmark they describe: a visually-hidden paragraph loose
+           in <body> is content outside any region, which is both an axe
+           finding and a real nuisance to a screen-reader user browsing by
+           landmark. -->
+      <p id="tabhint" class="vh">To reach the buttons, press Alt and F. Escape returns to writing.</p>
+      <p id="pagecount" class="vh" role="status"></p>
+      <p id="storageWarning" role="status" hidden>Could not save on this device. Download your writing to keep it.</p>
+    </main>
+
+    <!--
+      The mirror's cage. It must never be named in a media query, and must never
+      be display:none or content-visibility:hidden: it has to lay out in every
+      medium or the Range walk returns no rects and pagination collapses.
+    -->
+    <div id="mcage"><pre id="mirror" class="tp-text" aria-hidden="true"></pre></div>
+
+    <div id="printdoc" aria-hidden="true"></div>
+
+    <dialog id="settingsDlg" aria-labelledby="settingsTitle">
+      <form id="settingsForm">
+        <h2 id="settingsTitle">Settings</h2>
+        <fieldset>
+          <legend>Letters</legend>
+          <label class="setting-choice"><input type="radio" name="font" value="serif" checked /><span>Book letters</span><span class="setting-sample font-preview" data-preview-font="serif" aria-hidden="true">Aa Bb</span></label>
+          <label class="setting-choice"><input type="radio" name="font" value="dys" /><span>Round letters</span><span class="setting-sample font-preview" data-preview-font="dys" aria-hidden="true">Aa Bb</span></label>
+        </fieldset>
+        <fieldset>
+          <legend>Colors</legend>
+          <label class="setting-choice"><input type="radio" name="mode" value="reg" checked /><span>Black on white</span><span class="setting-sample color-preview" data-preview-mode="reg" aria-hidden="true">Aa</span></label>
+          <label class="setting-choice"><input type="radio" name="mode" value="hc" /><span>White on black</span><span class="setting-sample color-preview" data-preview-mode="hc" aria-hidden="true">Aa</span></label>
+        </fieldset>
+        <fieldset>
+          <legend>Font size</legend>
+          <label class="setting-choice"><input type="radio" name="size" value="small" /><span>Small</span><span class="setting-sample size-preview" data-preview-font="serif" data-preview-size="small" aria-hidden="true">Aa</span></label>
+          <label class="setting-choice"><input type="radio" name="size" value="medium" checked /><span>Medium</span><span class="setting-sample size-preview" data-preview-font="serif" data-preview-size="medium" aria-hidden="true">Aa</span></label>
+          <label class="setting-choice"><input type="radio" name="size" value="large" /><span>Large</span><span class="setting-sample size-preview" data-preview-font="serif" data-preview-size="large" aria-hidden="true">Aa</span></label>
+        </fieldset>
+        <button type="button" id="settingsReset" class="btn" aria-label="Reset all settings to default">Reset all settings to default</button>
+        <section id="settingsRecovery" aria-label="Draft recovery">
+          <button type="button" id="settingsRecover" class="btn" aria-expanded="false" aria-controls="recoveryPanel">Recover previous draft (0)</button>
+          <div id="recoveryPanel" hidden>
+            <p id="recoveryEmpty">No previous drafts.</p>
+            <ul id="recoveryList" aria-label="Previous drafts"></ul>
+            <p id="recoveryMessage" class="recovery-message" role="status" tabindex="-1" hidden></p>
+          </div>
+        </section>
+        <section id="settingsAbout" aria-labelledby="aboutTitle">
+          <h3 id="aboutTitle">About</h3>
+          <p>Created by <img class="authorship-mark" src="/chirpwater-logo.png" width="36" height="24" alt="" aria-hidden="true" /> ChirpWater, LLC</p>
+          <p>chirpwater.com</p>
+          <p>Clean Page is free for everyone, forever.</p>
+          <p>GitHub: repository address coming soon.</p>
+          <p id="appVersion"></p>
+        </section>
+        <div class="dlg-row settings-actions">
+          <button type="button" id="settingsCancel" class="btn">Cancel</button>
+          <button type="submit" id="settingsApply" class="btn btn-safe">Apply</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="downloadDlg" aria-labelledby="downloadTitle">
+      <form id="downloadForm">
+        <h2 id="downloadTitle">Download your writing</h2>
+        <label class="field-label" for="downloadName">File name</label>
+        <input type="text" id="downloadName" required maxlength="200" autocomplete="off" spellcheck="false" />
+        <div class="dlg-row">
+          <button type="button" id="downloadCancel" class="btn">Cancel</button>
+          <button type="submit" id="downloadGo" class="btn btn-safe">Download</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="dlg" aria-labelledby="dlgTitle" aria-describedby="dlgBody">
+      <h2 id="dlgTitle">Start a new page?</h2>
+      <p id="dlgBody">This clears this page. Changes you have not saved will be gone.</p>
+      <div class="dlg-row">
+        <button type="button" id="dlgKeep" class="btn btn-safe">Keep writing</button>
+        <button type="button" id="dlgGo" class="btn">Start new page</button>
+      </div>
+    </dialog>
+
+    <dialog id="say" aria-labelledby="sayBody">
+      <p id="sayBody"></p>
+      <div class="dlg-row">
+        <button type="button" id="sayOk" class="btn btn-safe">OK</button>
+      </div>
+    </dialog>
+  </body>
+</html>

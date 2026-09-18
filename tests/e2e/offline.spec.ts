@@ -1,0 +1,122 @@
+/**
+ * DESIGN §12.6 second half — the page must still work with the wifi off.
+ *
+ * The suite serves the real `dist/` through `vite preview`, so this is the
+ * built service worker with the generated precache list, not a stand-in.
+ * localhost is a secure context, so registration is available over http.
+ */
+import { expect, test } from "@playwright/test";
+import { open, ready, setText, settle } from "./helpers.js";
+
+test("offline caches are isolated from other applications and installation paths", async ({ page, context }) => {
+  // A statement has no application script, so caches can be seeded before the
+  // first registration. Cache Storage is origin-wide, not service-worker scoped.
+  await page.goto("/privacy.html");
+  const seeded = await page.evaluate(async () => {
+    const scope = new URL("./", location.href).href;
+    const foreign = "another-app-offline";
+    const sibling = `cleanpage-${encodeURIComponent(new URL("sibling/", scope).href)}:old`;
+    const obsolete = `cleanpage-${encodeURIComponent(scope)}:old`;
+    const unrelated = await caches.open(foreign);
+    await unrelated.put(new URL("app.css", scope), new Response("#sheet { width: 1px !important; }", {
+      headers: { "Content-Type": "text/css" },
+    }));
+    await unrelated.put(new URL("index.html", scope), new Response("Unrelated cached document", {
+      headers: { "Content-Type": "text/html" },
+    }));
+    await caches.open(sibling);
+    await caches.open(obsolete);
+    return { foreign, sibling, obsolete };
+  });
+
+  await open(page);
+  await page.evaluate(async () => { await navigator.serviceWorker.ready; });
+  await expect.poll(() => page.evaluate(() => caches.keys())).toContain(seeded.foreign);
+  const names = await page.evaluate(() => caches.keys());
+  expect(names).toContain(seeded.sibling);
+  expect(names).not.toContain(seeded.obsolete);
+
+  await page.reload();
+  await page.waitForFunction(() => !!navigator.serviceWorker.controller);
+  await context.setOffline(true);
+  // Both an exact document request and the app-shell fallback must come from
+  // this installation's cache, even if another cache has matching URLs.
+  const failed: string[] = [];
+  page.on("requestfailed", (request) => failed.push(request.url()));
+  for (const path of ["/index.html", "/offline-deep-link", "/deep/link/that/does/not/exist"]) {
+    await page.goto(path);
+    await ready(page);
+    await expect(page.locator("#ta")).toBeVisible();
+    await expect(page.locator("#ta")).toHaveCSS("width", "720px");
+    await expect(page.locator("#sheet")).toHaveCSS("width", "816px");
+    await page.getByRole("button", { name: "Settings", exact: true }).click();
+    await expect(page.locator("#settingsAbout img.authorship-mark")).toHaveJSProperty("naturalWidth", 96);
+    await expect(page.locator("#settingsAbout img.authorship-mark")).toHaveJSProperty("naturalHeight", 64);
+    await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  }
+  expect(failed, "the shell fallback loads all of its assets offline").toEqual([]);
+  await context.setOffline(false);
+});
+
+test("after one visit the page loads and works with the network off", async ({ page, context }) => {
+  await open(page);
+
+  const reg = await page.evaluate(async () => {
+    if (!navigator.serviceWorker) return "unsupported";
+    const r = await navigator.serviceWorker.ready;
+    return r.active ? "active" : "waiting";
+  });
+  test.skip(reg === "unsupported", "this browser has no service worker");
+  expect(reg).toBe("active");
+
+  // No skipWaiting() and no clients.claim(), deliberately: a new version must
+  // never activate under a child who is mid-sentence. So the FIRST load is
+  // uncontrolled by design, and the worker takes over on the next cold start.
+  await page.reload();
+  await page.waitForFunction(() => !!navigator.serviceWorker.controller);
+
+  const failed: string[] = [];
+  page.on("requestfailed", (r) => failed.push(`${r.url()} ${r.failure()?.errorText ?? ""}`));
+
+  await context.setOffline(true);
+  await page.reload();
+  await page.waitForFunction(() => document.fonts.status === "loaded");
+
+  // It is not enough that the document came back: it has to be the real page,
+  // in the real face, or pagination silently changes.
+  const state = await page.evaluate(() => {
+    const ta = document.getElementById("ta") as HTMLTextAreaElement | null;
+    return {
+      hasField: !!ta,
+      width: ta ? getComputedStyle(ta).width : null,
+      lineHeight: ta ? getComputedStyle(ta).lineHeight : null,
+      serifLoaded: document.fonts.check('16px "Liberation Serif"'),
+      dysLoaded: document.fonts.check('16px "OpenDyslexic"'),
+      styled: getComputedStyle(document.getElementById("sheet")!).width,
+    };
+  });
+  expect(state.hasField).toBe(true);
+  expect(state.width, "the CSS came from the cache, not a fallback").toBe("720px");
+  expect(state.lineHeight).toBe("32px");
+  expect(state.serifLoaded, "the real font, not a substitute").toBe(true);
+  expect(state.dysLoaded).toBe(true);
+  expect(state.styled).toBe("816px");
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  const logo = page.locator("#settingsAbout img.authorship-mark");
+  await expect(logo).toHaveJSProperty("naturalWidth", 96);
+  await expect(logo).toHaveJSProperty("naturalHeight", 64);
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  expect(failed, "nothing failed to load offline").toEqual([]);
+
+  // And it is a working editor, not a cached picture of one.
+  // Exactly 60 short lines and no trailing newline: two full pages.
+  await setText(page, Array.from({ length: 60 }, () => "I can still write on the bus.").join("\n"));
+  await settle(page);
+  const pages = await page.evaluate(() =>
+    Math.round(document.getElementById("ta")!.getBoundingClientRect().height / 960),
+  );
+  expect(pages).toBe(2);
+  expect(await page.locator("#printdoc .page").count()).toBe(2);
+
+  await context.setOffline(false);
+});

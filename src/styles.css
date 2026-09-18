@@ -1,0 +1,711 @@
+/* Clean Page — DESIGN §3, §4, §6, §9, §10. */
+
+/* ---------------------------------------------------------------- fonts */
+/* Real upstream family names, not project aliases: both faces have Reserved
+   Font Names and there is no reason to invite the question.
+   `font-display: block` is required, not a preference — laying out even
+   briefly in a fallback face would paginate the document wrongly and then
+   visibly repaginate it. */
+@font-face {
+  font-family: "Liberation Serif";
+  src: url("/fonts/LiberationSerif-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
+/* --------------------------------------------------------------- colour */
+:root {
+  /* Regular */
+  --ink: #1a1a1a;
+  --paper: #fdfdfb;
+  --desk: #5f6368;
+  --rule: #6b7280;
+  --bar-bg: #e8eaed;
+  --bar-ink: #14202b;
+  --btn-bg: #ffffff;
+  --btn-line: #4b5563;
+  --sel-bg: #14202b;
+  --sel-ink: #ffffff;
+  --focus: #0b57d0;
+  --halo: #ffffff;
+  --ok-ink: #0b5323;
+  --ok-bg: #e6f4ea;
+  --warn-ink: #8a3b00;
+  --warn-bg: #fff3e0;
+  /* The sheet's own edge, drawn independently of focus. The paper/desk pair
+     carries it in Regular (5.94:1), but in High contrast both are #000000 and
+     without this token the page has no boundary at all whenever the field is
+     not focused. #6B7280 measures 4.75:1 on paper. */
+  --edge: #6b7280;
+  --shade: 0 2px 12px rgb(0 0 0 / 35%);
+  color-scheme: light;
+}
+html[data-mode="hc"] {
+  /* High contrast: light on dark, 21.00:1 */
+  --ink: #ffffff;
+  --paper: #000000;
+  --desk: #000000;
+  --rule: #8a8a8a;
+  --bar-bg: #000000;
+  --bar-ink: #ffffff;
+  --btn-bg: #000000;
+  --btn-line: #ffffff;
+  --sel-bg: #ffd400;
+  --sel-ink: #000000;
+  --focus: #ffd400;
+  --halo: #000000;
+  --ok-ink: #ffffff;
+  --ok-bg: #000000;
+  --warn-ink: #ffd400;
+  --warn-bg: #000000;
+  /* Not #FFD400: yellow is reserved for focus and selection (DESIGN §9), and a
+     permanently yellow rim would destroy that signal. #8A8A8A is 6.08:1 on
+     black, well over the 3.0 non-text minimum. A black drop shadow on a black
+     desk draws nothing, so High contrast has none. */
+  --edge: #8a8a8a;
+  --shade: none;
+  color-scheme: dark;
+}
+@media (forced-colors: active) {
+  :root,
+  html[data-mode="hc"] {
+    --ink: CanvasText;
+    --paper: Canvas;
+    --desk: Canvas;
+    --rule: GrayText;
+    --bar-bg: Canvas;
+    --bar-ink: CanvasText;
+    --btn-bg: Canvas;
+    --btn-line: CanvasText;
+    --sel-bg: Highlight;
+    --sel-ink: HighlightText;
+    --focus: Highlight;
+    --halo: Canvas;
+    --ok-ink: CanvasText;
+    --ok-bg: Canvas;
+    --warn-ink: CanvasText;
+    --warn-bg: Canvas;
+    /* Paper and desk are both Canvas here, so the edge is the only thing that
+       tells a student where the page is. box-shadow is dropped entirely in
+       forced colours, which is why the edge is an outline and not a shadow. */
+    --edge: CanvasText;
+    --shade: none;
+  }
+}
+
+/* ------------------------------------------------------ metrics contract */
+/* Applied property for property to ALL THREE text elements: the textarea, the
+   mirror <pre>, and every per-page <pre> in the print DOM. Changing one
+   property here means changing it in all three and re-running the
+   wrap-equivalence spec. Never inline any of it anywhere else.
+
+   The editable element carries ZERO padding and ZERO border; the margins live
+   on the sheet wrapper. `padding: 48px` under a global border-box rule
+   silently cut the text column from 720 px to 624 px once, and the measured
+   page cuts stopped matching the rendering — invisible when it happens. */
+.tp-text {
+  font-family: "Liberation Serif", "Times New Roman", Times, serif;
+  font-size: 20px;
+  line-height: 40px;
+  font-weight: 400;
+  font-style: normal;
+  font-synthesis: none;
+  letter-spacing: normal;
+  word-spacing: normal;
+  font-kerning: normal;
+  font-variant-ligatures: normal;
+  font-feature-settings: normal;
+  font-variant-numeric: normal;
+  text-rendering: auto;
+  text-transform: none;
+  text-indent: 0;
+  text-align: left;
+  direction: ltr;
+  writing-mode: horizontal-tb;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: normal;
+  line-break: auto;
+  hyphens: none;
+  -webkit-hyphens: none;
+  tab-size: 48px;
+  -moz-tab-size: 48px;
+  box-sizing: content-box;
+  width: 720px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  orphans: 1;
+  widows: 1;
+}
+html[data-font="dys"] .tp-text {
+  font-family: "OpenDyslexic", sans-serif;
+}
+html[data-size="small"] .tp-text {
+  font-size: 16px;
+  line-height: 32px;
+}
+html[data-size="large"] .tp-text {
+  font-size: 24px;
+  line-height: 48px;
+}
+
+/* ---------------------------------------------------------------- shell */
+html {
+  background: var(--desk);
+  /* The measured toolbar height keeps the caret clear even when browser zoom
+     wraps the controls. Bottom padding leaves room below the line being typed. */
+  scroll-padding-top: calc(var(--bar-h, 57px) + 1px);
+  scroll-padding-bottom: 30vh;
+}
+body {
+  margin: 0;
+  background: var(--desk);
+  color: var(--bar-ink);
+  font: 400 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.vh {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* -------------------------------------------------------------- toolbar */
+#bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bar-bg);
+  color: var(--bar-ink);
+  border-bottom: 1px solid var(--btn-line);
+}
+#toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 6px 10px;
+}
+.grp {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn {
+  font: 600 14px/1.3 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 9px 10px;
+  border: 1px solid var(--btn-line);
+  border-radius: 6px;
+  background: var(--btn-bg);
+  color: var(--bar-ink);
+  cursor: pointer;
+}
+.btn[aria-disabled="true"] {
+  color: color-mix(in srgb, var(--bar-ink) 65%, var(--btn-bg));
+  cursor: default;
+}
+/* 3 px ring at 2 px offset plus a 6 px halo, so at least one of the two bands
+   always clears 3:1 against whatever is behind it (SC 2.4.11). */
+.btn:focus-visible,
+dialog .btn:focus,
+dialog input:focus {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px var(--halo);
+}
+/* Modal controls show focus after pointer and keyboard interaction alike.
+   A dark halo stays visible against the light dialog surface. */
+dialog {
+  --halo: #14202b;
+}
+html[data-mode="hc"] dialog {
+  --halo: #000000;
+}
+/* Hover changes no geometry and applies only to precise pointing devices. */
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover {
+    border-color: var(--bar-ink);
+  }
+}
+
+@media (forced-colors: active) {
+  .btn:focus-visible,
+  dialog .btn:focus,
+  dialog input:focus {
+    outline: 3px solid Highlight;
+  }
+  dialog,
+  html[data-mode="hc"] dialog {
+    --halo: Canvas;
+  }
+}
+
+/* Focus indicators belong to controls, not a page-sized halo. The toolbar
+   shortcut description stays available to assistive technology without a
+   pop-up interrupting the page when a student types a tab. */
+
+/* The saved indicator uses words, a glyph, and color. */
+#status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 6px 8px;
+  font: 400 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  border: 1px solid var(--btn-line);
+  border-radius: 6px;
+  white-space: nowrap;
+  /* A minimum reduces movement without clipping words at custom text spacing.
+     Only the filename is allowed to elide. Settings stays at the far edge. */
+  min-width: 22ch;
+}
+#btnSettings {
+  margin-left: auto;
+}
+#status[data-empty="true"],
+#status[data-state="dirty"] {
+  visibility: hidden;
+}
+/* The state words remain fully visible at custom text spacing. */
+#statusWord {
+  white-space: nowrap;
+}
+/* Visual truncation preserves the full filename for screen readers. The clip
+   margin protects descenders, with overflow:hidden as an older-browser fallback. */
+#statusName {
+  display: inline-block;
+  vertical-align: bottom;
+  max-width: 9ch;
+  overflow: hidden;
+  overflow: clip;
+  overflow-clip-margin: 4px;
+  text-overflow: ellipsis;
+}
+#status[data-state="clean"] {
+  background: var(--ok-bg);
+  color: var(--ok-ink);
+}
+#storageWarning {
+  position: fixed;
+  z-index: 20;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 10px 12px;
+  border: 1px solid var(--btn-line);
+  border-radius: 6px;
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+  font: 400 14px/1.4 system-ui, sans-serif;
+}
+
+/* A short, narrow viewport can scroll the wrapped toolbar away to make room
+   for writing. Larger viewports retain access to the controls while typing. */
+@media (max-width: 880px) and (max-height: 430px) {
+  #bar {
+    position: static;
+  }
+  /* No space is needed for a toolbar that scrolls with the document. */
+  html {
+    scroll-padding-top: 8px;
+  }
+}
+
+/* ----------------------------------------------------------------- desk */
+#desk {
+  background: var(--desk);
+  min-height: 100%;
+  padding: 24px 12px 96px;
+}
+/* The sheet is always 816 CSS px — no shrink-to-fit transform, which would
+   cancel the student's own browser zoom. Below the point where the desk margin
+   stops fitting, give the margin up before the paper. */
+@media (max-width: 880px) {
+  #desk {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+#sheet {
+  position: relative;
+  box-sizing: border-box;
+  width: 816px;
+  padding: 48px;
+  margin: 0 auto;
+  background: var(--paper);
+  /* An OUTLINE, not a border: a 1 px border under `box-sizing: border-box`
+     would cut the sheet's content box to 718 px while `.tp-text` is a
+     content-box 720 px, and the text column would overflow the paper by 2 px —
+     the exact failure DECISIONS 2.11 records. An outline draws in the same
+     place and changes no geometry. */
+  outline: 1px solid var(--edge);
+  box-shadow: var(--shade);
+  /* The 48 px white band focuses the field on pointerdown (DECISIONS 10.8), so
+     it has to read as writing surface: without this the pointer flipped from
+     I-beam to arrow on the exact strip a nine-year-old aims at to start a
+     line. */
+  cursor: text;
+}
+#ta {
+  display: block;
+  height: auto; /* set by layout(): pages * 960 px */
+  background: transparent;
+  color: var(--ink);
+  caret-color: var(--ink);
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  -webkit-appearance: none;
+  appearance: none;
+  position: relative;
+  z-index: 1;
+  -webkit-tap-highlight-color: transparent;
+}
+#ta::selection {
+  background: var(--sel-bg);
+  color: var(--sel-ink);
+}
+
+/* The overlay is a pointer-events:none, aria-hidden sibling BEHIND the
+   transparent textarea, so it cannot affect editing, hit-testing, dictation or
+   the accessibility tree. */
+#breaks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+#breaks .rule {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  /* a border, not a background, so the rule survives forced-colors */
+  border-top: 2px solid var(--rule);
+  /* A little breathing room at the seam without changing pagination. */
+  box-shadow: 0 -4px 0 var(--paper), 0 4px 0 var(--paper);
+}
+
+#mcage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+}
+#printdoc {
+  display: none;
+}
+
+/* --------------------------------------------------------------- dialog */
+dialog {
+  border: 2px solid var(--bar-ink);
+  border-radius: 12px;
+  background: var(--bar-bg);
+  color: var(--bar-ink);
+  padding: 20px;
+  box-sizing: border-box;
+  max-width: 28em;
+  width: calc(100% - 32px);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  font: 400 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+dialog::backdrop {
+  background: rgb(0 0 0 / 55%);
+}
+dialog h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+dialog p {
+  margin: 0 0 16px;
+}
+.dlg-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.btn-safe {
+  background: var(--sel-bg);
+  color: var(--sel-ink);
+}
+#settingsDlg {
+  max-width: 400px;
+  scroll-padding-top: 12px;
+  scroll-padding-bottom: 88px;
+}
+#settingsForm fieldset {
+  border: 0;
+  margin: 0 0 12px;
+  padding: 0;
+  min-width: 0;
+}
+#settingsForm legend {
+  font-weight: 600;
+  padding: 0 0 6px;
+}
+.setting-choice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
+  min-height: 44px;
+  margin-bottom: 4px;
+  padding: 4px 10px;
+  border: 1px solid var(--btn-line);
+  border-radius: 6px;
+  background: var(--btn-bg);
+  cursor: pointer;
+}
+.setting-choice:has(input:checked) {
+  border-color: var(--focus);
+  box-shadow: none;
+}
+.setting-choice input {
+  width: 18px;
+  height: 18px;
+  margin: 0 3px;
+  accent-color: var(--bar-ink);
+  flex: 0 0 auto;
+}
+.setting-sample {
+  margin-left: auto;
+  flex: 0 0 auto;
+  text-align: center;
+}
+.font-preview,
+.size-preview {
+  font-family: "Liberation Serif", "Times New Roman", Times, serif;
+  font-size: 20px;
+  line-height: 1.4;
+  font-weight: 400;
+  font-synthesis: none;
+  letter-spacing: normal;
+  word-spacing: normal;
+}
+.font-preview {
+  min-width: 72px;
+}
+.size-preview {
+  min-width: 44px;
+}
+.size-preview[data-preview-size="small"] {
+  font-size: 16px;
+}
+.size-preview[data-preview-size="large"] {
+  font-size: 24px;
+}
+.color-preview {
+  min-width: 40px;
+  padding: 2px 4px;
+  border: 1px solid #6b7280;
+  border-radius: 4px;
+  font: 400 20px/1.3 "Liberation Serif", "Times New Roman", Times, serif;
+}
+.color-preview[data-preview-mode="reg"] {
+  background: #fdfdfb;
+  color: #1a1a1a;
+}
+.color-preview[data-preview-mode="hc"] {
+  background: #000;
+  color: #fff;
+}
+#settingsAbout {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid var(--btn-line);
+  font-size: 12px;
+  line-height: 1.5;
+}
+#settingsRecovery {
+  margin-top: 12px;
+}
+#settingsRecover {
+  width: 100%;
+  text-align: left;
+}
+#recoveryPanel {
+  margin-top: 10px;
+}
+#recoveryEmpty,
+.recovery-message {
+  margin: 10px 0;
+  font-size: 14px;
+}
+#recoveryList {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.recovery-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 10px;
+  border: 1px solid var(--btn-line);
+  border-radius: 6px;
+  background: var(--btn-bg);
+}
+.recovery-item > div {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+.recovery-title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.recovery-item time {
+  display: block;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.recovery-message:focus {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+#settingsAbout h3 {
+  margin: 0 0 6px;
+  font-size: 13px;
+}
+#settingsAbout p {
+  margin: 3px 0;
+}
+.authorship-mark {
+  display: inline-block;
+  width: 36px;
+  height: auto;
+  vertical-align: middle;
+  border-radius: 3px;
+}
+.settings-actions {
+  position: sticky;
+  bottom: -20px;
+  z-index: 1;
+  margin: 16px -20px -20px;
+  padding: 12px 20px 20px;
+  justify-content: flex-end;
+  border-top: 1px solid var(--btn-line);
+  background: var(--bar-bg);
+}
+.field-label {
+  display: block;
+  margin: 16px 0 8px;
+}
+#downloadName {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  margin-bottom: 20px;
+  padding: 8px;
+  border: 1px solid var(--btn-line);
+  border-radius: 4px;
+  font: inherit;
+  background: var(--btn-bg);
+  color: var(--bar-ink);
+}
+/* The same backplate erasure, and this is where it was worst: in forced
+   colours "Keep writing" measured 1728 white pixels and zero ink, so the only
+   readable button in the dialog that decides whether a child's writing is
+   deleted was "Start new page". The safe choice keeps its emphasis the way the
+   platform gives it — it is the first button and it holds initial focus, so it
+   wears the Highlight focus ring — and gives up only the filled look, which is
+   the thing that was destroying it. */
+@media (forced-colors: active) {
+  .btn-safe {
+    background: Canvas;
+    color: CanvasText;
+  }
+}
+
+/* ---------------------------------------------------------------- print */
+@media print {
+  /* The 0.5 in margin is drawn as PADDING on each sheet, with the page box
+     itself at margin 0.
+
+     Not a style choice. Gecko subtracts the printer's unwriteable margin from
+     the usable page height on top of the `@page` margin, and a 30-line block
+     is 960 px in a 792pt - 2 x 0.5in = 960 px box: no slack at all. Measured
+     with real Gecko print output (Firefox printing silently to PDF): 30 lines
+     came out as 29 + 1, so a 2-page document printed on 4 sheets and the
+     5-page corpus on 9, two of them all but blank. Chromium never saw it,
+     which is why a chromium-only `page.pdf` suite could not.
+
+     With `margin: 0` Gecko gives the whole sheet (measured 1056 px usable,
+     against about 1002 px minus the top margin for any non-zero margin), and
+     the 1008 px sheet block leaves 48 px of slack for any plausible printer
+     hard margin. Ink lands in exactly the same place as before in both
+     engines: x = 36.0 pt, y = 41 pt. */
+  @page {
+    size: letter;
+    margin: 0;
+  }
+  /* Print is always black on white, whatever the screen mode (DESIGN §9).
+     `color-scheme: dark` has to be undone here too: it leaves the UA canvas
+     dark, and Chrome then fills the whole page box — margins included — with
+     rgb(18,18,18) whenever "Background graphics" is ticked in the print
+     dialog. Measured: in High contrast that prints a white text block inside a
+     full-bleed black frame, on every sheet. */
+  :root,
+  html[data-mode="hc"] {
+    color-scheme: light;
+  }
+  html,
+  body {
+    background: #fff;
+    padding: 0;
+    margin: 0;
+  }
+  /* NEVER name #mcage here: the mirror has to lay out in the print medium. */
+  #bar,
+  #desk,
+  dialog,
+  .vh {
+    display: none !important;
+  }
+  #printdoc {
+    display: block !important;
+  }
+  /* No fixed height and no overflow:hidden. That is not an omission: at print
+     scale 125 % a `height:960px; overflow:hidden` page deleted the 30th line of
+     every page from the PDF entirely. `break-after: page` is what paginates.
+     Extra paper is recoverable; deleted words are not. */
+  .page {
+    /* content-box 720 px + 2 x 48 px padding = 816 px = 8.5 in wide;
+       48 px + 960 px = 1008 px tall inside an 11 in = 1056 px sheet. */
+    box-sizing: content-box;
+    width: 720px;
+    padding: 48px;
+    break-after: page;
+    page-break-after: always;
+  }
+  .page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+  .page > pre {
+    color: #000 !important;
+    background: #fff !important;
+  }
+}
