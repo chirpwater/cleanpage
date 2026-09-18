@@ -88,7 +88,7 @@ describe("file names and incoming text", () => {
   });
 
   it("names the file after the first line the child wrote", () => {
-    expect(suggestName("My Trip to the Tide Pools\nOn Saturday")).toBe("My Trip to the Tide Pools.txt");
+    expect(suggestName("There are very few good tragedies\nsome are idylls in dialogue")).toBe("There are very few good tragedies.txt");
     expect(suggestName("\n\n  \n  Hello there!  \n")).toBe("Hello there.txt");
     expect(suggestName("")).toBe("My writing.txt");
     expect(suggestName("!!!***")).toBe("My writing.txt");
