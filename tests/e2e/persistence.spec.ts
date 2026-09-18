@@ -10,7 +10,6 @@ test("the current draft returns after reload and after closing and reopening its
   await page.locator("#ta").fill(STORY);
   await expect(page.locator("#status")).toHaveAttribute("data-state", "dirty");
 
-  // No debounce or unload callback may be needed for the last input to survive.
   await page.reload();
   await ready(page);
   await expect(page.locator("#ta")).toHaveValue(STORY);

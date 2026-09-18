@@ -1,20 +1,3 @@
-/**
- * DESIGN §7 — "the second Save and every Ctrl+S write back to the same file
- * silently", and a file that is not plain writing must "leave the document
- * alone".
- *
- * These run on the File System Access path (the Chrome/ChromeOS path, where
- * the picker IS the Files app and the handle is what makes Save-to-Drive work),
- * with the two pickers mocked over an in-memory disk. That is the only way to
- * see the binding at all: on the download fallback there is no handle to lose.
- *
- * The defect: `files.open()` installed the handle and the filename before the
- * caller had seen the bytes, and the binary branch then called `forgetFile()`,
- * which cleared the binding of the file the child was ALREADY working in.
- * Merely looking at a PNG orphaned story.txt; the chip went on naming it; and
- * the next Save re-opened the picker and wrote a second file, leaving the one
- * the teacher collects stale.
- */
 import { expect, test } from "@playwright/test";
 import { open, settle, setText } from "./helpers.js";
 
@@ -32,7 +15,6 @@ declare global {
   }
 }
 
-/** A minimal in-memory showSaveFilePicker / showOpenFilePicker. */
 async function mockPickers(page: import("@playwright/test").Page): Promise<void> {
   await page.addInitScript(() => {
     const disk: Disk = {
@@ -80,14 +62,12 @@ test("refusing a file that is not plain writing keeps the document bound to its 
   await mockPickers(page);
   await open(page);
 
-  // A1: write and save. One picker call.
   await setText(page, "My tide pool story");
   await page.locator("#btnSave").click();
   await settle(page);
   await expect(page.locator("#status")).toContainText("story.txt");
   expect((await disk(page)).savePicks).toBe(1);
 
-  // A2: edit and save again — silently, back into the same file.
   await setText(page, "My tide pool story and more");
   await page.locator("#btnSave").click();
   await settle(page);
@@ -95,7 +75,6 @@ test("refusing a file that is not plain writing keeps the document bound to its 
   expect(d.savePicks, "the child is never asked where twice").toBe(1);
   expect(d.files["story.txt"]).toBe("My tide pool story and more");
 
-  // A3: open a PNG. It is refused, as DESIGN §7 requires.
   await page.evaluate(() => {
     window.__disk.nextOpen = { name: "photo.png", text: "�".repeat(400) };
   });
@@ -105,12 +84,10 @@ test("refusing a file that is not plain writing keeps the document bound to its 
   await expect(page.locator("#say")).toBeHidden();
   await settle(page);
 
-  // A4: "leave the document alone" means the binding and the chip too.
   expect(await page.inputValue("#ta")).toBe("My tide pool story and more");
   await expect(page.locator("#status")).toContainText("story.txt");
   await expect(page.locator("#status")).toHaveAttribute("data-state", "clean");
 
-  // A5/A6: and the next Save still writes back to story.txt, silently.
   await setText(page, "My tide pool story and more and more");
   await page.locator("#btnSave").click();
   await settle(page);
@@ -134,7 +111,6 @@ test("opening a real .txt rebinds the document to it, and Save writes back there
   await settle(page);
   expect(await page.locator("#status").innerText()).toContain("story.txt");
 
-  // The document is clean now, so Open goes straight to the picker.
   await page.evaluate(() => {
     window.__disk.nextOpen = { name: "from-the-teacher.txt", text: "write about your weekend\n" };
   });
@@ -143,7 +119,6 @@ test("opening a real .txt rebinds the document to it, and Save writes back there
   expect(await page.inputValue("#ta")).toBe("write about your weekend\n");
   expect(await page.locator("#status").innerText()).toContain("from-the-teacher.txt");
 
-  // Save now writes back to the file that was opened, with no further question.
   await setText(page, "write about your weekend\nWe went to the beach.\n");
   await page.locator("#btnSave").click();
   await settle(page);

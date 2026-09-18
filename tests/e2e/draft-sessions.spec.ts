@@ -195,8 +195,6 @@ test("a suspended page reacquires ownership without overwriting a new owner", as
   await openPage(page);
   await page.locator("#ta").fill(first);
   const original = await storedDraft(page);
-  // Exercise the persisted page lifecycle deterministically; whether a browser
-  // elects to use its back/forward cache for a real navigation is discretionary.
   await page.evaluate(() => dispatchEvent(new PageTransitionEvent("pagehide", { persisted: true })));
   const other = await context.newPage();
   await openPage(other);

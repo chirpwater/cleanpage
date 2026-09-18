@@ -1,11 +1,3 @@
-/**
- * DESIGN §12.10 and §7 — Open and Save on the fallback path.
- *
- * Every test here runs with `showSaveFilePicker` / `showOpenFilePicker`
- * removed, which is Firefox, Safari, and any Chromebook where district policy
- * has turned the File System Access API off. That is the path nobody tests by
- * hand, so it is the path that gets a test.
- */
 import { expect, test } from "@playwright/test";
 import { mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -14,8 +6,6 @@ import { OUT, open, setText, settle } from "./helpers.js";
 test.beforeEach(async ({ page }) => {
   mkdirSync(OUT, { recursive: true });
   await page.addInitScript(() => {
-    // District policy can block the picker outright; so can any non-Chromium
-    // browser. Same code path, so: test it.
     delete (window as unknown as Record<string, unknown>)["showSaveFilePicker"];
     delete (window as unknown as Record<string, unknown>)["showOpenFilePicker"];
   });
@@ -54,7 +44,6 @@ test("Download confirms a .txt name from the first line and writes exact bytes",
   const path = join(OUT, "saved-by-the-fallback.txt");
   await download.saveAs(path);
   expect(readFileSync(path, "utf8"), "exactly what the child typed").toBe(STORY);
-  // UTF-8, no BOM, LF only.
   const raw = readFileSync(path);
   expect(raw[0]).not.toBe(0xef);
   expect(raw.includes(0x0d)).toBe(false);

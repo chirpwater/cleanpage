@@ -1,23 +1,3 @@
-/**
- * DESIGN §12.1 — the spec the whole design rests on.
- *
- * Two independent instruments over the hostile corpus, in both faces:
- *
- *   (a) Pixel identity. An element screenshot of the textarea against an
- *       element screenshot of a <pre class="tp-text"> holding the same text,
- *       compared with pixelmatch: zero differing pixels. Glyph-level, not
- *       line-level, so it also covers the tab, space-run, CJK and emoji lines
- *       that no text instrument can check.
- *
- *   (b) Caret ground truth. `document.caretPositionFromPoint` over the
- *       textarea returns the FIELD's own internal line-start indices. Those are
- *       compared against the paginator's. If these two ever disagree, the
- *       printed page stops being the page the student saw.
- *
- * Chromium is required. Firefox and WebKit are best-effort: this environment
- * ships a fixed browser cache and forbids downloads, so a project whose build
- * is missing is skipped with the revision numbers rather than failed.
- */
 import { expect, test } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -36,7 +16,6 @@ import {
 
 test.skip(({ browserName }) => engineUnavailable(browserName) !== null, "browser build not cached");
 
-/** Crop to a common box so a textarea grown to whole pages can meet a natural-height <pre>. */
 function crop(png: PNG, w: number, h: number): PNG {
   const out = new PNG({ width: w, height: h });
   PNG.bitblt(png, out, 0, 0, w, h, 0, 0);
@@ -131,7 +110,6 @@ for (const font of ["serif", "dys"] as const) {
       const ta = document.getElementById("ta") as HTMLTextAreaElement;
       const starts = (window as unknown as { __tpLineStarts: () => number[] }).__tpLineStarts();
 
-      // The field's own line count, measured without the mirror at all.
       const keep = ta.style.height;
       ta.style.height = "0px";
       const taLines = Math.round(ta.scrollHeight / 32);
@@ -171,33 +149,19 @@ for (const font of ["serif", "dys"] as const) {
       probe.taLines,
     );
 
-    // DESIGN §12.1: scrollHeight may exceed lines*32 by a few px, because
-    // OpenDyslexic's 29 px font box overhangs a 32 px line box on the last line.
     expect(probe.scrollHeight).toBeGreaterThanOrEqual(probe.starts.length * LINE_H);
     expect(probe.scrollHeight).toBeLessThanOrEqual(probe.starts.length * LINE_H + 6);
 
     const supported = probe.caret.every((c) => c !== null);
     expect(supported, "caretPositionFromPoint over a textarea is the instrument").toBe(true);
 
-    // Documented artefacts of the instrument itself. None of them is a
-    // wrap difference: the line COUNTS agree exactly (asserted above), no
-    // mismatch shifts the following line, and the pixel instrument sees zero
-    // differing pixels over the same corpus in the same face.
     const artefact = (i: number, want: number, got: number | null): string | null => {
-      // DESIGN §12.1: Firefox's hit test at x = left + 0.5 lands AFTER a
-      // leading tab.
       if (browserName === "firefox" && probe.value[want] === "\t" && got === want + 1) {
         return "firefox: leading tab";
       }
-      // A line opening with a combining mark: no engine will place a caret
-      // before a mark that has nothing to combine with, so the hit test snaps
-      // to the next grapheme boundary. Measured in Chromium and Firefox alike.
       if (got === want + 1 && /\p{M}/u.test(probe.value[want] ?? "")) {
         return "leading combining mark";
       }
-      // On the empty final line, Firefox and WebKit expose an element child
-      // offset instead of a character offset. Check an actual click below so
-      // this exception cannot conceal an incorrectly positioned final line.
       if (browserName !== "chromium" && i === probe.starts.length - 1 && want === probe.value.length) {
         return `${browserName}: empty final line`;
       }

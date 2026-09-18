@@ -1,16 +1,3 @@
-/**
- * A static server that serves `dist/` AND applies `dist/_headers`.
- *
- * `vite preview` sends no response headers of its own, so until this existed
- * nothing in the suite had ever exercised the configuration that actually
- * ships. That mattered: a service worker inherits the CSP of its own script
- * response, so one token in `_headers` decided whether the precache installed
- * at all, and the suite was green either way.
- *
- * Deliberately tiny and dependency-free — it is a test fixture, not a host.
- * `Vary: Origin` is sent because real static hosts do, and the service worker's
- * `ignoreVary: true` lookups exist precisely because of that.
- */
 import { createServer } from "node:http";
 import { readFileSync, statSync } from "node:fs";
 import { dirname, extname, join, normalize } from "node:path";
@@ -33,7 +20,6 @@ const TYPES = {
   ".txt": "text/plain; charset=utf-8",
 };
 
-/** Parse a Cloudflare/Netlify `_headers` file into [pattern, {name: value}] rules. */
 function parseHeaders(text) {
   const rules = [];
   let current = null;
@@ -51,7 +37,6 @@ function parseHeaders(text) {
   return rules;
 }
 
-/** `/*` and `/fonts/*` are the only shapes this project uses. */
 const matches = (pattern, path) =>
   pattern.endsWith("*") ? path.startsWith(pattern.slice(0, -1)) : pattern === path;
 
@@ -61,12 +46,6 @@ function headersFor(rules, path) {
   return out;
 }
 
-/**
- * `dist/` is produced by the other `webServer` entry (`npm run build`), and
- * Playwright makes no promise about the order the two are started in. Read the
- * rules lazily, and re-read them whenever the file changes, so this server is
- * correct whether it starts before or after the build.
- */
 let rules = [];
 let stamp = -1;
 function currentRules() {
@@ -78,7 +57,6 @@ function currentRules() {
       stamp = m;
     }
   } catch {
-    /* the build has not run yet; serve nothing until it has */
   }
   return rules;
 }

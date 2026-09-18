@@ -1,23 +1,6 @@
-/**
- * Toolbar, radio groups, status chip, dialogs and the page-break overlay
- * (DESIGN §10).
- */
 import { MARGIN, PAGE_BODY_H } from "./metrics.js";
 import { S } from "./strings.js";
 
-/* ------------------------------------------------------------ radio groups */
-
-/**
- * Two radios with roving `tabindex`: one tab stop, arrow keys select.
- *
- * Radio groups, not `aria-pressed` toggles: a toggle button whose label names
- * the *other* state confuses children and screen-reader users alike, while a
- * radio group states the current choice unambiguously.
- *
- * The selected radio is filled AND carries a real checkmark element. Never a
- * CSS `::before` — generated content leaks into the accessible name, and an
- * aria snapshot once caught exactly that.
- */
 export type ActivationSource = "pointer" | "key";
 
 export function radioGroup(
@@ -44,20 +27,9 @@ export function radioGroup(
     }
   };
 
-  /**
-   * `src` is threaded through to the caller because the two are not the same
-   * gesture. After a tap or a click the child should find the cursor back in
-   * their writing; after an arrow key they are working inside the group, and
-   * moving focus out of it would be a change of context on changing the
-   * setting of a control (SC 3.2.2) — and would make ArrowLeft a dead key,
-   * since the group is no longer focused to receive it.
-   */
   const select = (r: HTMLElement, src: ActivationSource) => {
     paint(r);
     r.focus();
-    // Fired on every activation, changed or not, so the two paths cannot
-    // disagree: re-clicking the radio that is already on used to be the one
-    // gesture that left focus behind. The listener is idempotent.
     onChange(r.dataset.value ?? "", src);
   };
 
@@ -100,21 +72,12 @@ export function radioGroup(
     });
   }
 
-  // Set the group without firing onChange (used for the initial state).
   return (value: string) => {
     const r = radios.find((x) => x.dataset.value === value);
     if (r) paint(r);
   };
 }
 
-/* ---------------------------------------------------------- break overlay */
-
-/**
- * `pages - 1` hairlines. Rule k sits at
- * `48 + k * 960` px inside the sheet: the zero-height space between line box
- * 30k and line box 30k+1, so it can never touch a glyph in either face.
- * Cheap and idempotent.
- */
 export function renderBreaks(host: HTMLElement, pages: number, pageH: number = PAGE_BODY_H): void {
   const want = Math.max(0, pages - 1);
   while (host.childElementCount > want) host.lastElementChild?.remove();
@@ -130,11 +93,8 @@ export function renderBreaks(host: HTMLElement, pages: number, pageH: number = P
   }
 }
 
-/* --------------------------------------------------------------- dialogs */
-
 export type Guard = "new" | "open";
 
-/** Ask before creating a browser download; Escape/Cancel leave writing alone. */
 export function promptDownloadName(suggested: string, restoreFocusTo: HTMLElement): Promise<string | null> {
   const dlg = document.getElementById("downloadDlg") as HTMLDialogElement;
   const form = document.getElementById("downloadForm") as HTMLFormElement;
@@ -177,24 +137,11 @@ export function promptDownloadName(suggested: string, restoreFocusTo: HTMLElemen
   });
 }
 
-/**
- * Tab cycles the dialog's own buttons, and never through a stop with no ring.
- *
- * `showModal()` traps focus inside the dialog, but Chrome's native cycle puts
- * the dialog element itself between the last button and the first: measured,
- * the third Tab left `document.activeElement` on BODY with `outlineStyle:
- * none` on both buttons, so the highlight vanished for one press — on the
- * dialog that decides whether a child's writing is deleted. The one-button
- * `say` dialog did the same. Returns its own teardown, called from `onClose`
- * so nothing leaks across opens.
- */
 function trapTab(dlg: HTMLDialogElement, stops: HTMLElement[]): () => void {
   const onKeydown = (e: KeyboardEvent): void => {
     if (e.key !== "Tab" || e.isComposing) return;
     e.preventDefault();
     const i = stops.indexOf(document.activeElement as HTMLElement);
-    // Not one of ours (the BODY stop, or focus restored oddly): re-enter the
-    // ring at the end the child was heading for, so the cycle self-heals.
     const next =
       i < 0
         ? (e.shiftKey ? stops[stops.length - 1] : stops[0])
@@ -205,13 +152,6 @@ function trapTab(dlg: HTMLDialogElement, stops: HTMLElement[]): () => void {
   return () => dlg.removeEventListener("keydown", onKeydown);
 }
 
-/**
- * A native <dialog> opened with showModal(): a real focus trap, Escape and
- * ::backdrop come free. Never window.confirm, whose wording is not ours and
- * which reads badly to a screen reader.
- *
- * Two choices, and the safe one takes initial focus. Escape = Keep writing.
- */
 export function confirmDiscard(
   dlg: HTMLDialogElement,
   title: HTMLElement,
@@ -249,7 +189,6 @@ export function confirmDiscard(
   });
 }
 
-/** One sentence and an OK button, for the rare thing that went wrong. */
 export function say(
   dlg: HTMLDialogElement,
   body: HTMLElement,

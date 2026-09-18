@@ -6,7 +6,6 @@ export type RecoveryOptions = {
   recover: (id: string) => Promise<boolean>;
 };
 
-/** A disclosure inside Settings: browsing never applies pending preferences. */
 export function initRecovery(
   form: HTMLFormElement,
   options: RecoveryOptions | undefined,

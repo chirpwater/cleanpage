@@ -15,7 +15,6 @@ function memoryStorage(): Storage {
   };
 }
 
-/** A real queue, including held asynchronous callbacks, exercises startup serialization. */
 function lockManager(): LockManager {
   const held = new Set<string>();
   const waiters = new Map<string, Array<() => void>>();
@@ -247,7 +246,6 @@ describe("independent tab drafts", () => {
     first.session.persist(draft("Original"));
     const originalId = first.session.currentId();
     const switching = first.session.newDocument(draft("New story"));
-    // Let New start acquiring its next lease before navigation interrupts it.
     await Promise.resolve();
     first.events.dispatchEvent(new Event("pagehide"));
     const resuming = first.session.ready();

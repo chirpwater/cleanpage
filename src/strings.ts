@@ -1,14 +1,6 @@
-/**
- * Every user-visible string in the application (DESIGN §10, DECISIONS 5.20).
- *
- * The readers are nine years old. Keep every sentence at or below a
- * second-grade reading level so a teacher can review the whole vocabulary of
- * the interface in thirty seconds. Do not add a string anywhere else.
- */
 export const S = {
   appName: "Clean Page",
 
-  // Toolbar
   fileGroup: "File",
   toolbar: "Writing tools",
   editGroup: "Edit",

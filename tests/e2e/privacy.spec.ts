@@ -1,11 +1,3 @@
-/**
- * DESIGN §12.6 and §15 — the promise the district email makes.
- *
- * "Nothing you write leaves your device" is only worth saying if it is
- * enforced and tested. Two halves: no request of any kind once the page is
- * open, and writing stays only in the explicit local draft, never cached
- * application responses, cookies, session storage, or a database.
- */
 import { expect, test } from "@playwright/test";
 import { CORPUS, ready, setText, settle } from "./helpers.js";
 import { DRAFT_RECORD_PREFIX, SETTINGS_KEY } from "../../src/storage.js";
@@ -13,7 +5,6 @@ import { DRAFT_SESSION_KEY } from "../../src/drafts.js";
 
 const SECRET = "Zoltan-the-marmot-ate-my-homework";
 
-/** Let the service worker finish installing before anything is measured. */
 async function swSettled(page: import("@playwright/test").Page): Promise<void> {
   await page
     .evaluate(() => navigator.serviceWorker?.ready.then(() => undefined))

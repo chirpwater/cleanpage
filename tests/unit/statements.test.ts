@@ -1,13 +1,3 @@
-/**
- * The build-time renderer behind `dist/privacy.html` and
- * `dist/accessibility.html` (DECISIONS 10.5).
- *
- * The two statements are the documents a district reviewer reads, and they are
- * generated rather than hand-copied so the published copy and the repository
- * copy cannot drift. That only holds if the renderer keeps the whole text: the
- * cases here are the ones the two files actually contain, plus the escaping a
- * generated page must not get wrong.
- */
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -20,7 +10,6 @@ describe("the statement renderer", () => {
     expect(inlineMarkdown("a <textarea> & an \"and\"")).toBe(
       "a &lt;textarea&gt; &amp; an &quot;and&quot;",
     );
-    // `<` inside code is still escaped: a statement page may not inject markup.
     expect(inlineMarkdown("`<meta>`")).toBe("<code>&lt;meta&gt;</code>");
   });
 

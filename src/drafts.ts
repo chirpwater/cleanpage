@@ -16,7 +16,6 @@ export interface DraftSession {
   persist(draft: Draft): boolean;
   newDocument(draft: Draft): Promise<void>;
   recover(id: string): Promise<Draft | null>;
-  /** Reacquire ownership after a persisted pageshow, copying if the original changed. */
   ready(): Promise<void>;
   dispose(): void;
 }

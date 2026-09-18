@@ -1,4 +1,3 @@
-/** Docs-style keyboard navigation without requiring a full application menu. */
 export function initToolbar(
   root: HTMLElement,
   editor: HTMLTextAreaElement,
@@ -46,14 +45,11 @@ export function initToolbar(
   addEventListener("keydown", (event) => {
     if (event.isComposing || event.defaultPrevented || dialogOpen()) return;
     const key = event.key.toLowerCase();
-    // Google Docs' explicit "move focus out of document text" shortcut.
     if (event.altKey && event.shiftKey && (apple ? event.metaKey : event.ctrlKey) && key === "m") {
       event.preventDefault();
       focus();
       return;
     }
-    // ChromeOS uses Alt+letter; the accessibility guide also documents Shift.
-    // On macOS use Control+Option so Option+letter still types accented text.
     const menuModifiers = event.altKey && !event.metaKey && (apple ? event.ctrlKey : !event.ctrlKey);
     if (menuModifiers && ["f", "e", "t"].includes(key)) {
       event.preventDefault();
@@ -63,7 +59,6 @@ export function initToolbar(
       else focus(target);
       return;
     }
-    // The ChromeOS landmark shortcut, and the Windows/macOS equivalent.
     const landmarkModifiers = apple
       ? event.metaKey && event.altKey && !event.ctrlKey
       : event.altKey && ((event.shiftKey && !event.ctrlKey) || (event.ctrlKey && !event.shiftKey));

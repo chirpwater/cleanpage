@@ -1,21 +1,3 @@
-/**
- * `src/strings.ts` says of itself: "Every user-visible string in the
- * application... Do not add a string anywhere else." DECISIONS 5.20 repeats the
- * claim. Half of it was not true: sixteen of the thirty exported keys were
- * referenced nowhere, and every one of their values was hard-coded a second
- * time in `index.html` — including the 74-character Tab hint, written out in
- * full in both files. Editing the file the project tells a maintainer to edit
- * changed nothing a child reads, and nothing in the suite noticed.
- *
- * Two of the sixteen were unwired strays inside components strings.ts already
- * owns (`confirmDiscard` writes the dialog's title, body and Go button from S;
- * `tell` writes the body from S), and those are now assigned in `main.ts`. The
- * rest belong to static markup, where writing them into the DOM at boot would
- * buy nothing and cost first-paint work the measured layout does not budget
- * for. So strings.ts stays the authoritative wording and this test is the thing
- * that stops the two copies drifting: a rewording in strings.ts that is not
- * carried into index.html is a red test, not a silent no-op.
- */
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -23,7 +5,6 @@ import { S } from "../../src/strings.js";
 
 const HTML = readFileSync(join(import.meta.dirname, "..", "..", "index.html"), "utf8");
 
-/** Keys whose wording index.html must render verbatim. */
 const IN_MARKUP = [
   "appName",
   "fileGroup",
@@ -65,12 +46,9 @@ const IN_MARKUP = [
   "downloadName",
   "pageLabel",
   "tabHint",
-  // The chip's load-time state is in the markup too, so the page reads
-  // correctly before boot() has run.
   "saved",
 ] as const;
 
-/** Keys written into the DOM by the application at run time. */
 const IN_CODE = [
   "tabHintMac",
   "saved",

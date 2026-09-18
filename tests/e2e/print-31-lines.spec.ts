@@ -1,11 +1,3 @@
-/**
- * DESIGN §12.3 — never delete this test.
- *
- * A document of exactly 31 visual lines must print 30 + 1. It is what catches
- * any future refactor that reintroduces a fragmenting block, where Chromium's
- * default `widows: 2` silently produces 29 + 2 — a page break in the wrong
- * place, with no error and nothing missing to count.
- */
 import { expect, test } from "@playwright/test";
 import { execFileSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -22,8 +14,6 @@ import {
   words,
 } from "./helpers.js";
 
-// DECISIONS 7.9: the PDF assertions shell out to poppler; skip, never fail,
-// when it is not installed.
 test.skip(!havePoppler(), NO_POPPLER);
 
 test("exactly 31 lines print as 30 + 1, with line 30 on page 1", async ({ page }) => {

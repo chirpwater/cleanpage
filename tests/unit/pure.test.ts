@@ -10,13 +10,10 @@ describe("metrics", () => {
   });
 
   it("derives the lines per page from the spacing actually in effect", () => {
-    // The design default is bit-identical to the old constant.
     expect(linesPerPage(32)).toBe(LINES_PER_PAGE);
     expect(linesPerPage(32) * 32).toBe(PAGE_BODY_H);
-    // A user stylesheet forcing 1.5x or 2.5x line spacing (SC 1.4.12).
     expect(linesPerPage(24)).toBe(40);
     expect(linesPerPage(40)).toBe(24);
-    // Never zero, never negative, whatever a stylesheet asks for.
     expect(linesPerPage(4000)).toBe(1);
   });
 
@@ -40,9 +37,6 @@ describe("pagination arithmetic", () => {
   });
 
   it("counts and slices at whatever lines-per-page the spacing gives", () => {
-    // 40 lines to a page at a forced 1.5x, 24 at a forced 2.5x. The screen,
-    // the break rules and the printed sheets all come from this one number, so
-    // they cannot disagree the way they did when it was the constant 30.
     expect(pagesOf(starts(40), 40)).toBe(1);
     expect(pagesOf(starts(41), 40)).toBe(2);
     expect(pagesOf(starts(24), 24)).toBe(1);
@@ -59,7 +53,7 @@ describe("pagination arithmetic", () => {
     const slices = pageSlices(text, s);
     expect(slices).toHaveLength(2);
     expect(slices.join("")).toBe(text);
-    expect(slices[0]!.length).toBe(300); // 30 lines of 10
+    expect(slices[0]!.length).toBe(300);
   });
 
   it("31 visual lines are 30 + 1, never 29 + 2", () => {

@@ -1,16 +1,7 @@
-/**
- * DESIGN §12.6 second half — the page must still work with the wifi off.
- *
- * The suite serves the real `dist/` through `vite preview`, so this is the
- * built service worker with the generated precache list, not a stand-in.
- * localhost is a secure context, so registration is available over http.
- */
 import { expect, test } from "@playwright/test";
 import { open, ready, setText, settle } from "./helpers.js";
 
 test("offline caches are isolated from other applications and installation paths", async ({ page, context }) => {
-  // A statement has no application script, so caches can be seeded before the
-  // first registration. Cache Storage is origin-wide, not service-worker scoped.
   await page.goto("/privacy.html");
   const seeded = await page.evaluate(async () => {
     const scope = new URL("./", location.href).href;

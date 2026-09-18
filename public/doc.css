@@ -1,13 +1,3 @@
-/*
- * The two statement pages that ship WITH the site (privacy.html,
- * accessibility.html), generated at build time from docs/PRIVACY.md and
- * docs/ACCESSIBILITY.md.
- *
- * A separate file, never an inline <style> block: the site's own
- * Content-Security-Policy is `style-src 'self'`, so an inline stylesheet would
- * be refused and the statement would be served unstyled on the host that
- * enforces the policy — while looking perfect locally.
- */
 :root {
   color-scheme: light dark;
   --doc-ink: #1a1a1a;

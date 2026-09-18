@@ -1,24 +1,3 @@
-/**
- * Clean Page service worker (DESIGN §8).
- *
- * Cache-first over a precache list. The build id and the asset list below are
- * placeholders, replaced at build time by the Vite plugin in `vite.config.ts`
- * from the files the build actually emitted, so the list cannot rot.
- *
- * Every lookup passes `ignoreVary: true`. The precache is a fixed list of our
- * own static files, but a host may answer them with `Vary: Origin` (Vite's own
- * preview server does, and so do several static hosts). The precached entry is
- * then stored against a header-less `addAll` request and never matches the
- * document's own `cors` requests for app.js and app.css — measured: the page
- * reloaded offline with both of them ERR_FAILED and no stylesheet at all.
- *
- * No skipWaiting() and no clients.claim(), deliberately: a new version must
- * never activate under a child who is mid-sentence. Even with local recovery,
- * replacing the running app would interrupt their editing state. The new
- * worker waits and takes over on the next cold start.
- */
-// Cache Storage is shared by the whole origin, including other applications
-// and other copies of Clean Page hosted under different paths.
 const CACHE_PREFIX = `cleanpage-${encodeURIComponent(self.registration.scope)}:`;
 const CACHE = `${CACHE_PREFIX}__CP_BUILD__`;
 const ASSETS = ["__CP_ASSETS__"];

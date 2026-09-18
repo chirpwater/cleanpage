@@ -1,20 +1,3 @@
-/**
- * Gecko's real printed output — the engine DESIGN §16 and DECISIONS 8.8 record
- * as never measured by anyone.
- *
- * Playwright cannot call `page.pdf()` on Firefox, but Firefox can be told to
- * print silently to a file, which is a real Gecko print run rather than a
- * count of line boxes under `emulateMedia('print')`. What that found:
- * Gecko subtracts the printer's unwriteable margin from the usable page height
- * ON TOP of the `@page` margin, and the shipped `@page { margin: 0.5in }` left
- * a 960 px block in a 960 px box with no slack at all — so every full page
- * printed 29 lines and pushed the 30th onto a sheet of its own. A 2-page
- * document came out on 4 sheets, and the 5-page corpus on 9. PROPOSAL.md:
- * "Printing produces the same pages the student sees", in "current Firefox".
- *
- * The fix is `@page { margin: 0 }` with the 0.5 in drawn as padding on each
- * sheet (see the print CSS). This spec is what holds it.
- */
 import { expect, test } from "@playwright/test";
 import { execFileSync } from "node:child_process";
 import { existsSync, rmSync, statSync } from "node:fs";
@@ -33,16 +16,12 @@ import {
   words,
 } from "./helpers.js";
 
-/** The one path the launch-time preference can point at (see playwright.config.ts). */
 export const FF_PDF = join(OUT, "firefox-print.pdf");
 
 const reason = engineUnavailable("firefox");
 test.skip(!!reason, reason ?? "");
-// DECISIONS 7.9: the PDF assertions shell out to poppler; skip, never fail,
-// when it is not installed.
 test.skip(!havePoppler(), NO_POPPLER);
 
-/** Print, and wait for Gecko to finish writing the file. */
 async function printToFile(page: import("@playwright/test").Page): Promise<string> {
   rmSync(FF_PDF, { force: true });
   await page.evaluate(() => {
@@ -53,7 +32,7 @@ async function printToFile(page: import("@playwright/test").Page): Promise<strin
     await page.waitForTimeout(200);
     if (!existsSync(FF_PDF)) continue;
     const now = statSync(FF_PDF).size;
-    if (now > 0 && now === size) return FF_PDF; // two polls at the same size
+    if (now > 0 && now === size) return FF_PDF;
     size = now;
   }
   throw new Error("Firefox never finished writing " + FF_PDF);

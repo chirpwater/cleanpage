@@ -1,10 +1,3 @@
-/**
- * DESIGN §12.2 — the printed pages must be the pages the student saw.
- *
- * Chromium only: Playwright cannot emit a PDF from Gecko or WebKit, which is
- * why those engines are checked by counting line boxes under
- * `emulateMedia('print')` in `print-media-build.spec.ts` instead.
- */
 import { expect, test } from "@playwright/test";
 import { execFileSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -25,8 +18,6 @@ import {
   words,
 } from "./helpers.js";
 
-// DECISIONS 7.9: the PDF assertions shell out to poppler; skip, never fail,
-// when it is not installed.
 test.skip(!havePoppler(), NO_POPPLER);
 
 test.beforeAll(() => mkdirSync(OUT, { recursive: true }));
@@ -35,27 +26,11 @@ interface PdfOpts {
   scale?: number;
   margin?: string;
   format?: "Letter" | "A4";
-  /** Extra CSS, injected through the CSSOM exactly as the margin override is. */
   inject?: string;
 }
 
-/** The exact `.page` shape DESIGN §6 says deletes words. */
 const DANGEROUS_PAGE_SHAPE = "@media print { #printdoc .page { height: 960px; overflow: hidden } }";
 
-/**
- * A margin override has to go through the STYLESHEET, not the CDP option.
- *
- * `preferCSSPageSize: true` makes Chromium take both the page size and the
- * margins from `@page`, and discard `page.pdf({ margin })` entirely — measured:
- * at CDP margin 0.5in / 1in / 0 the three PDFs came out byte-identical, so the
- * two margin cases here were silently re-running the default configuration and
- * asserting nothing. `preferCSSPageSize: false` does not help either: `@page
- * { margin }` still wins, and all three were identical again.
- *
- * The rule is inserted through the CSSOM rather than an injected `<style>`,
- * because the built page ships a `<meta http-equiv>` CSP whose `style-src
- * 'self'` blocks an inline stylesheet; the CSSOM is not restricted by CSP.
- */
 async function printToPdf(
   page: import("@playwright/test").Page,
   name: string,

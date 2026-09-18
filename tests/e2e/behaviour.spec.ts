@@ -1,17 +1,9 @@
-/**
- * DESIGN §12.9 and §7 — the behaviour a nine-year-old depends on.
- *
- * Everything here is about not losing words: the chip that tells the truth, the
- * dialog that asks before it clears, the guard on closing the tab, and the fact
- * that the field is a plain native textarea with native undo and native paste.
- */
 import { expect, test } from "@playwright/test";
 import { CORPUS, chooseFont, geometry, open, setText, settle } from "./helpers.js";
 
 const chip = (page: import("@playwright/test").Page) =>
   page.locator("#status").innerText();
 
-/** A failed local recovery write is the case where leaving needs a warning. */
 async function blockDraftStorage(page: import("@playwright/test").Page): Promise<void> {
   await page.addInitScript(() => {
     const write = Storage.prototype.setItem;
@@ -34,8 +26,6 @@ test("the saved indicator stays quiet while editing and follows edit and undo", 
   await settle(page);
   await expect(page.locator("#status")).toHaveAttribute("data-state", "dirty");
 
-  // Undoing back to the saved text must flip the chip back — a sticky dirty
-  // flag would nag the child over an edit they already took back.
   for (let i = 0; i < 12 && (await page.inputValue("#ta")) !== ""; i++) {
     await page.keyboard.press("ControlOrMeta+z");
   }
@@ -58,14 +48,12 @@ test("New asks first and Keep writing keeps every word", async ({ page }) => {
   expect(await page.inputValue("#ta")).toContain("good tragedies");
   await expect(page.locator("#ta")).toBeFocused();
 
-  // And Escape is the same answer as Keep writing.
   await page.locator("#btnNew").click();
   await expect(page.locator("#dlg")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.locator("#dlg")).toBeHidden();
   expect(await page.inputValue("#ta")).toContain("good tragedies");
 
-  // Start new page is the only thing that clears.
   await page.locator("#btnNew").click();
   await page.locator("#dlgGo").click();
   await expect(page.locator("#dlg")).toBeHidden();
@@ -116,18 +104,14 @@ test("Tab types a tab, keeps focus, and is one undo step", async ({ page }) => {
   expect(await page.inputValue("#ta")).toBe("ab\tcd");
   await expect(page.locator("#ta"), "Tab must not move focus out of the page").toBeFocused();
 
-  // `execCommand("insertText")` is required, not stylistic: after a
-  // `setRangeText` the native undo stack is truncated and Ctrl+Z stops working
-  // past that point in all three engines.
-  await page.keyboard.press("ControlOrMeta+z"); // "cd"
-  await page.keyboard.press("ControlOrMeta+z"); // the tab
+  await page.keyboard.press("ControlOrMeta+z");
+  await page.keyboard.press("ControlOrMeta+z");
   await settle(page);
   expect(await page.inputValue("#ta"), "the tab is undoable").not.toContain("\t");
 });
 
 test("pasting rich HTML puts plain text in the document", async ({ page }) => {
   await open(page);
-  // Copy from a real rich source so the clipboard genuinely carries text/html.
   await page.evaluate(() => {
     const src = document.createElement("div");
     src.id = "__rich";
@@ -168,18 +152,6 @@ test("closing the tab warns about unsaved writing even when recovery is availabl
   expect(dialogs, "beforeunload protects unsaved writing").toContain("beforeunload");
 });
 
-/**
- * The guard has its OWN predicate, and the child's first keystroke is very
- * often whitespace.
- *
- * Measured against the earlier built page: press Tab to indent,
- * then write a story, and `page.close({ runBeforeUnload: true })` fired no
- * dialog at all — for the whole session. `refreshDirty()` returned early on
- * `dirty === wasDirty` before it ever reached the `beforeunload` subscription,
- * and the one input that flipped `dirty` was the Tab, when `value.trim()` was
- * still empty. Every key here is pressed for real: a single `input` event
- * carrying the whole value hides the bug completely.
- */
 for (const lead of [
   { name: "a tab", key: "Tab" },
   { name: "a space", key: "Space" },

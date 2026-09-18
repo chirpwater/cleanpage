@@ -1,21 +1,10 @@
-/**
- * `paginate.ts` slicing logic, as pure arithmetic.
- *
- * `lineStarts` needs a real browser to measure, and the e2e suite checks it
- * against the textarea's own caret. What lives here is the part that decides
- * WHERE the paper is cut, given those line starts — and the property that
- * matters most is the one a student would notice: the slices must reconstruct
- * the document exactly, with nothing lost and nothing duplicated.
- */
 import { describe, expect, it } from "vitest";
 import { LINES_PER_PAGE, mirrorText } from "../../src/metrics.js";
 import { pageSlices, pagesOf } from "../../src/paginate.js";
 
-/** `n` line starts, `w` characters apart: a stand-in for `lineStarts`. */
 const evenStarts = (n: number, w = 10): number[] =>
   Array.from({ length: n }, (_, i) => i * w);
 
-/** The line starts of a document whose every visual line is one hard line. */
 function hardLineStarts(text: string): number[] {
   const out: number[] = [];
   let at = 0;
@@ -58,7 +47,7 @@ describe("pageSlices", () => {
 
   it("is lossless for every line count from 1 to 200", () => {
     for (let n = 1; n <= 200; n++) {
-      const text = "y".repeat(n * 7 + 3); // the last line is a partial one
+      const text = "y".repeat(n * 7 + 3);
       const slices = pageSlices(text, evenStarts(n, 7));
       expect(slices.join(""), `${n} lines`).toBe(text);
       expect(slices.length, `${n} lines`).toBe(pagesOf(evenStarts(n, 7)));

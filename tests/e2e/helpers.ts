@@ -1,10 +1,3 @@
-/**
- * Shared measurement helpers for the e2e suite.
- *
- * The caret probe and the pixel comparison are lifted from the design spikes
- * (`scratchpad/design-native-first/cross.mjs`,
- * `scratchpad/design-kid-and-a11y-first/run-wrap.mjs`) rather than re-derived.
- */
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
@@ -17,7 +10,6 @@ export const REPO = join(here, "..", "..");
 
 export const CORPUS = readFileSync(join(REPO, "tests", "fixtures", "corpus.txt"), "utf8");
 
-/** Where PDFs, PNGs and other evidence land. Never inside the repo tree. */
 export const OUT =
   process.env["CP_ARTIFACTS"] ??
   "/tmp/claude-1000/-mnt-fast-git-cleanpage/0d261fa4-f1cc-411e-ae2f-dd8c17c61c21/scratchpad/qa";
@@ -28,13 +20,6 @@ export const PAGE_BODY_H = 960;
 export const MARGIN = 48;
 export const CONTENT_W = 720;
 
-/**
- * Why a browser project cannot run here, or null if it can.
- *
- * This environment ships a fixed browser cache and forbids downloads, so a
- * Playwright version whose pinned revision is not in that cache must be
- * reported as skipped with the revision numbers, not left to fail at launch.
- */
 export function engineUnavailable(name: string): string | null {
   const root = process.env["PLAYWRIGHT_BROWSERS_PATH"] ?? join(homedir(), ".cache", "ms-playwright");
   const meta = JSON.parse(
@@ -56,12 +41,6 @@ export function engineUnavailable(name: string): string | null {
 
 let popplerProbe: boolean | null = null;
 
-/**
- * Is poppler-utils on PATH? The PDF assertions shell out to `pdfinfo`,
- * `pdftotext` and `pdftoppm`; DECISIONS 7.9 and 7.4 require them to SKIP when
- * poppler is absent rather than fail, so CI needs no system packages. Probed
- * once per worker.
- */
 export function havePoppler(): boolean {
   if (popplerProbe === null) {
     try {
@@ -74,10 +53,8 @@ export function havePoppler(): boolean {
   return popplerProbe;
 }
 
-/** The one reason string every poppler-gated test skips with. */
 export const NO_POPPLER = "poppler-utils (pdfinfo/pdftotext/pdftoppm) is not installed";
 
-/** Wait until the fonts are in and boot()'s first real layout has run. */
 export async function ready(page: Page): Promise<void> {
   await page.waitForFunction(() => {
     const ta = document.getElementById("ta") as HTMLTextAreaElement | null;
@@ -85,7 +62,6 @@ export async function ready(page: Page): Promise<void> {
   });
 }
 
-/** Read the current tab's recovery record, never another tab's global draft. */
 export async function storedDraft(page: Page): Promise<{
   id: string; text: string; lastSavedText: string; fileName: string | null; updatedAt: number;
 } | null> {
@@ -96,23 +72,12 @@ export async function storedDraft(page: Page): Promise<{
   });
 }
 
-/**
- * Open the historical print reference: small type is 16px with 32px line boxes.
- * The application default is medium. Tests of defaults/persistence should use
- * page.goto() + ready() instead of this explicit geometry baseline.
- */
 export async function open(page: Page): Promise<void> {
   await page.goto("./");
   await ready(page);
   await chooseSize(page, "small");
 }
 
-/**
- * Put a whole document in the field without 9000 synthetic key events.
- *
- * `setRangeText` + a synthetic `input` is exactly the path the application's
- * own Tab fallback uses, so it exercises the real listener chain.
- */
 export async function setText(page: Page, text: string): Promise<void> {
   await page.evaluate((t) => {
     const ta = document.getElementById("ta") as HTMLTextAreaElement;
@@ -123,7 +88,6 @@ export async function setText(page: Page, text: string): Promise<void> {
   await settle(page);
 }
 
-/** layout() runs in a rAF; the print doc and the page announcement on a 300 ms idle timer. */
 export async function settle(page: Page): Promise<void> {
   await page.waitForTimeout(600);
 }
@@ -181,7 +145,6 @@ export async function geometry(page: Page): Promise<Geometry> {
   });
 }
 
-/** The text of each constructed print sheet, i.e. the paginator's own page slices. */
 export async function screenPages(page: Page): Promise<string[]> {
   return page.evaluate(() =>
     Array.from(document.querySelectorAll("#printdoc .page pre")).map((p) => p.textContent ?? ""),
@@ -195,10 +158,8 @@ export const lastWord = (s: string): string => {
   return w.length ? w[w.length - 1]! : "";
 };
 
-/** A stream of uniquely numbered ASCII tokens: wraps naturally, extracts cleanly. */
 export const numberedWords = (n: number): string =>
   Array.from({ length: n }, (_, i) => "w" + String(i + 1).padStart(4, "0")).join(" ");
 
-/** One numbered hard line per visual line: `L001` ... `Lnnn`. */
 export const numberedLines = (n: number): string =>
   Array.from({ length: n }, (_, i) => "L" + String(i + 1).padStart(3, "0")).join("\n");

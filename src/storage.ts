@@ -1,6 +1,5 @@
 import type { Settings } from "./settings.js";
 
-/** Local recovery only: file handles and cloud credentials are never stored. */
 export interface Draft {
   text: string;
   lastSavedText: string;
@@ -9,7 +8,6 @@ export interface Draft {
 
 export interface DraftRecord extends Draft {
   id: string;
-  /** Last text edit, not the last time a tab happened to view this draft. */
   updatedAt: number;
 }
 
@@ -22,7 +20,6 @@ function read(key: string): unknown {
     const value = localStorage.getItem(key);
     return value === null ? null : JSON.parse(value) as unknown;
   } catch {
-    // Storage can be disabled by browser policy, or a previous value malformed.
     return null;
   }
 }
@@ -32,7 +29,6 @@ function write(key: string, value: Draft | DraftRecord | Settings): boolean {
     localStorage.setItem(key, JSON.stringify(value));
     return true;
   } catch {
-    // In particular, an over-quota write must not be reported as a saved draft.
     return false;
   }
 }
@@ -71,7 +67,6 @@ export function writeDraftRecord(record: DraftRecord): boolean {
   });
 }
 
-/** Independent entries avoid a read/modify/write index that competing tabs could overwrite. */
 export function listDraftRecords(): DraftRecord[] {
   const records: DraftRecord[] = [];
   try {
@@ -82,16 +77,13 @@ export function listDraftRecords(): DraftRecord[] {
       if (record) records.push(record);
     }
   } catch {
-    // Unavailable storage must never prevent writing in the editor.
   }
   return records.sort((a, b) => b.updatedAt - a.updatedAt || a.id.localeCompare(b.id));
 }
 
-/** Called while holding the startup lock; only remove the old entry after verified migration. */
 export function migrateLegacyDraft(id: string): DraftRecord | null {
   const legacy = readDraft();
   if (!legacy) return null;
-  // If a browser allowed the new write but denied removal, retries should not multiply backups.
   const existing = listDraftRecords().find((record) => record.text === legacy.text &&
     record.lastSavedText === legacy.lastSavedText && record.fileName === legacy.fileName);
   const record: DraftRecord = existing ?? { ...legacy, id, updatedAt: legacy.text.trim() ? Date.now() : 0 };
@@ -102,7 +94,7 @@ export function migrateLegacyDraft(id: string): DraftRecord | null {
     const remaining = readDraft();
     if (remaining?.text === legacy.text && remaining.lastSavedText === legacy.lastSavedText &&
         remaining.fileName === legacy.fileName) {
-      try { localStorage.removeItem(DRAFT_KEY); } catch { /* Keep both if removal is blocked. */ }
+      try { localStorage.removeItem(DRAFT_KEY); } catch { }
     }
   }
   return record;

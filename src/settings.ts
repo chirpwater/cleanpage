@@ -3,7 +3,6 @@ import { S } from "./strings.js";
 import { initRecovery, type RecoveryOptions } from "./recovery.js";
 export type { RecoveryItem, RecoveryOptions } from "./recovery.js";
 
-/** Preferences are drafted in the dialog and applied together on submission. */
 export type Settings = {
   font: "serif" | "dys";
   mode: "reg" | "hc";
@@ -16,7 +15,6 @@ export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
   size: "medium",
 });
 
-/** One shared set of metrics applies to the editor, mirror, and printed pages. */
 export function applySettings(settings: Settings): void {
   const root = document.documentElement;
   root.dataset.font = settings.font;
@@ -78,8 +76,6 @@ export function initSettings(
       event.preventDefault();
       return;
     }
-    // Native dialogs can insert a BODY stop at the tab-cycle boundary. Keep a
-    // visible control focused without changing native radio-group navigation.
     const stops = Array.from(form.querySelectorAll<HTMLInputElement | HTMLButtonElement>('input[type="radio"]:checked, button'))
       .filter((control) => !control.disabled && control.getClientRects().length > 0);
     const first = stops[0];

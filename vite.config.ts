@@ -3,20 +3,8 @@ import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 
-/**
- * Stamps a build id and a precache list into the copied `dist/sw.js`.
- *
- * The list is derived from what the build actually emitted, so it cannot rot
- * (DESIGN §8). Everything that is not part of the running application —
- * the service worker itself, `_headers`, `.nojekyll`, the vendored upstream
- * TTF and the font licence texts — is excluded: they are shipped for the
- * record, never fetched by the page.
- */
 function swBuildId(): Plugin {
   const EXCLUDE = new Set(["sw.js", "_headers", ".nojekyll"]);
-  // The .ttf ships as the reproduction source for the WOFF2 the page actually
-  // loads (see NOTICE), never as a runtime asset; the .txt files are the font
-  // licences the OFL requires. Neither is ever fetched, so neither is cached.
   const EXCLUDE_EXT = [".ttf", ".txt", ".map"];
   let out = "dist";
   let root = process.cwd();
@@ -126,15 +114,6 @@ export function inlineMarkdown(text: string): string {
     .replace(/\*([^*]+)\*/g, "<em>$1</em>");
 }
 
-/**
- * Markdown to HTML for exactly what the two statements contain: one `#`, some
- * `##`, paragraphs, and `-` lists whose items wrap onto indented lines.
- *
- * Deliberately not a dependency. The shipped page has zero runtime
- * dependencies and this runs at build time, but a Markdown library would still
- * be one more thing between a district reviewer and the sentence they are
- * reading.
- */
 export function renderMarkdown(md: string): { title: string; body: string } {
   const lines = md.replace(/\r\n/g, "\n").split("\n");
   const out: string[] = [];

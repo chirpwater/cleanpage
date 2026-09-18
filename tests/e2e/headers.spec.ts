@@ -1,18 +1,3 @@
-/**
- * The configuration that actually ships (DESIGN §8, DECISIONS 6.11/6.12).
- *
- * Every other spec runs against `vite preview`, which sends no response
- * headers at all, so `public/_headers` had never been exercised by anything.
- * It needed to be: a service worker inherits the CSP of its own script
- * response, and with `connect-src 'none'` the fetches inside `cache.addAll`
- * were blocked, `install` rejected, the precache was created empty, no
- * controller was ever installed, and an offline reload died with
- * ERR_INTERNET_DISCONNECTED — on the preferred host, silently, with the whole
- * suite green.
- *
- * This project runs against `tests/server/headers-server.mjs`, which serves
- * `dist/` with `dist/_headers` applied the way Cloudflare Pages does.
- */
 import { expect, test } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -20,7 +5,6 @@ import { REPO, chooseFont, chooseMode, open, settle, setText } from "./helpers.j
 
 const headersText = (): string => readFileSync(join(REPO, "public", "_headers"), "utf8");
 
-/** The precache list the build actually emitted, read out of `dist/sw.js`. */
 function emittedAssets(): string[] {
   const src = readFileSync(join(REPO, "dist", "sw.js"), "utf8");
   const m = /const ASSETS = (\[[\s\S]*?\]);/.exec(src);
@@ -28,7 +12,6 @@ function emittedAssets(): string[] {
   return JSON.parse(m[1]!) as string[];
 }
 
-/** `public/_headers` as [pattern, {name: value}] blocks. */
 function blocks(): { pattern: string; headers: Record<string, string> }[] {
   const out: { pattern: string; headers: Record<string, string> }[] = [];
   for (const raw of headersText().split(/\r?\n/)) {
