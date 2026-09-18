@@ -268,6 +268,10 @@ export default defineConfig({
   // uses a real certificate. Never serve private keys from Vite's project root.
   server: {
     host: "0.0.0.0",
+    // Tailscale Serve terminates TLS and forwards with the tailnet hostname in
+    // the Host header, which Vite rejects unless the name is allowed. Opt-in by
+    // env so the default dev server keeps its localhost-only host check.
+    allowedHosts: (process.env.CP_ALLOWED_HOSTS ?? "").split(",").filter(Boolean),
     ...tls,
     fs: { deny: [".env", ".env.*", "*.{crt,pem,key}", "**/.git/**", "**/.certs/**"] },
   },
