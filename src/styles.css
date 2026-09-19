@@ -15,7 +15,7 @@
   --bar-bg: #f4f4f1;
   --bar-ink: #14202b;
   --soft-ink: #58626d;
-  --dim-ink: #8b939c;
+  --dim-ink: #656d7a;
   --hair: #d6d7d2;
   --hover: #e7e7e1;
   --pick: #e8ebef;
@@ -166,18 +166,14 @@ body {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 2px 6px;
+  gap: 2px 14px;
   padding: 4px 12px;
 }
 .grp {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 2px;
-}
-.grp + .grp {
-  margin-left: 6px;
-  padding-left: 10px;
-  border-left: 1px solid var(--hair);
 }
 
 .btn {
@@ -231,15 +227,14 @@ dialog input:focus-visible {
   align-items: center;
   gap: 5px;
   box-sizing: border-box;
-  margin: 0 0 0 6px;
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  margin: 0;
   padding: 0;
   font: 400 0.8125rem/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   color: var(--soft-ink);
   white-space: nowrap;
-  min-width: 22ch;
-}
-#btnSettings {
-  margin-left: auto;
 }
 #status[data-empty="true"],
 #status[data-state="dirty"] {
