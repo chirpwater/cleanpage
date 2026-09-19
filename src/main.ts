@@ -389,12 +389,9 @@ async function boot(): Promise<void> {
   history.reset();
   layout();
   refreshDirty();
+  void document.fonts.load('16px "OpenDyslexic"').catch(() => {});
   try {
-    await Promise.all([
-      document.fonts.load('16px "Liberation Serif"'),
-      document.fonts.load('16px "OpenDyslexic"'),
-    ]);
-    await document.fonts.ready;
+    await document.fonts.load('16px "Liberation Serif"');
   } catch {
   }
   clearCache();

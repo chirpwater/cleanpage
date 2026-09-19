@@ -4,7 +4,7 @@
   X-Content-Type-Options: nosniff
   Permissions-Policy: accelerometer=(), camera=(), geolocation=(), gyroscope=(), microphone=(), payment=(), usb=()
   Cross-Origin-Opener-Policy: same-origin
-  Cache-Control: public, max-age=0, must-revalidate, no-transform
+  Cache-Control: public, max-age=0, must-revalidate
 
 /fonts/*
-  Cache-Control: public, max-age=86400, stale-while-revalidate=604800, no-transform
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800

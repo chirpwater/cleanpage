@@ -33,6 +33,7 @@ test("the real response headers arrive, and the CSP is the one in public/_header
 }) => {
   const rules = blocks();
   expect(rules.map((r) => r.pattern)).toEqual(["/*", "/fonts/*"]);
+  expect(headersText()).not.toContain("no-transform");
 
   const cases: [string, string][] = [
     ["/*", "/"],
