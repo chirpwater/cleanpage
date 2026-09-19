@@ -51,21 +51,21 @@ const sayOk = $<HTMLButtonElement>("sayOk");
 
 const printDoc = new PrintDoc(printHost, mirror, () => ta.value);
 
-let announced = "";
+let announcedPages = 0;
 let announceTimer = 0;
 let seeded = false;
 
-function announcePages(count: string): void {
+function announcePages(pages: number): void {
   if (!seeded) {
     seeded = true;
-    announced = count;
+    announcedPages = pages;
     return;
   }
   clearTimeout(announceTimer);
   announceTimer = window.setTimeout(() => {
-    if (count === announced) return;
-    announced = count;
-    pagecount.textContent = count;
+    if (pages === announcedPages) return;
+    announcedPages = pages;
+    pagecount.textContent = S.pageCount(pages);
   }, 300);
 }
 
@@ -88,7 +88,7 @@ function layout(): void {
   renderBreaks(breaks, narrow ? 1 : pages, pageH);
   breaknote.hidden = !narrow;
   printDoc.schedule();
-  announcePages(narrow ? S.paperPageCount(pages) : S.pageCount(pages));
+  announcePages(pages);
 }
 
 addEventListener("resize", layout);

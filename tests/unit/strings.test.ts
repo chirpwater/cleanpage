@@ -51,7 +51,6 @@ const IN_CODE = [
   "saved",
   "savedPrefix",
   "pageCount",
-  "paperPageCount",
   "dlgNewTitle",
   "dlgNewBody",
   "dlgNewGo",
