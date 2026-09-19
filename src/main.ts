@@ -75,11 +75,21 @@ function layout(): void {
   const pageH = lpp * lineH;
   const starts = lineStarts(mirror, text);
   const pages = pagesOf(starts, lpp);
-  ta.style.height = pages * pageH + "px";
-  renderBreaks(breaks, pages, pageH);
+  const narrow = ta.clientWidth < mirror.clientWidth;
+  if (narrow) {
+    const y = scrollY;
+    ta.style.height = "0px";
+    ta.style.height = ta.scrollHeight + "px";
+    scrollTo(0, y);
+  } else {
+    ta.style.height = pages * pageH + "px";
+  }
+  renderBreaks(breaks, narrow ? 1 : pages, pageH);
   printDoc.schedule();
   announcePages(pages);
 }
+
+addEventListener("resize", layout);
 
 const publishBarHeight = (): void => {
   document.documentElement.style.setProperty("--bar-h", bar.offsetHeight + "px");
