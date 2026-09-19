@@ -26,6 +26,7 @@ const bar = $("bar");
 const sheet = $("sheet");
 const mirror = $<HTMLPreElement>("mirror");
 const breaks = $("breaks");
+const breaknote = $("breaknote");
 const printHost = $("printdoc");
 const status = $("status");
 const statusWord = $("statusWord");
@@ -50,21 +51,21 @@ const sayOk = $<HTMLButtonElement>("sayOk");
 
 const printDoc = new PrintDoc(printHost, mirror, () => ta.value);
 
-let announcedPages = 0;
+let announced = "";
 let announceTimer = 0;
 let seeded = false;
 
-function announcePages(pages: number): void {
+function announcePages(count: string): void {
   if (!seeded) {
     seeded = true;
-    announcedPages = pages;
+    announced = count;
     return;
   }
   clearTimeout(announceTimer);
   announceTimer = window.setTimeout(() => {
-    if (pages === announcedPages) return;
-    announcedPages = pages;
-    pagecount.textContent = S.pageCount(pages);
+    if (count === announced) return;
+    announced = count;
+    pagecount.textContent = count;
   }, 300);
 }
 
@@ -85,8 +86,9 @@ function layout(): void {
     ta.style.height = pages * pageH + "px";
   }
   renderBreaks(breaks, narrow ? 1 : pages, pageH);
+  breaknote.hidden = !narrow;
   printDoc.schedule();
-  announcePages(pages);
+  announcePages(narrow ? S.paperPageCount(pages) : S.pageCount(pages));
 }
 
 addEventListener("resize", layout);

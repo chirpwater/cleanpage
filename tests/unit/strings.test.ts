@@ -41,6 +41,7 @@ const IN_MARKUP = [
   "downloadTitle",
   "downloadName",
   "pageLabel",
+  "breaksHidden",
   "tabHint",
   "saved",
 ] as const;
@@ -50,6 +51,7 @@ const IN_CODE = [
   "saved",
   "savedPrefix",
   "pageCount",
+  "paperPageCount",
   "dlgNewTitle",
   "dlgNewBody",
   "dlgNewGo",

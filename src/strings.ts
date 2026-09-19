@@ -51,6 +51,8 @@ export const S = {
 
   // The writing surface
   pageLabel: "Your writing",
+  breaksHidden:
+    "This window is too narrow to show where the pages end. Printing still breaks them in the same places.",
   tabHint: "To reach the buttons, press Alt and F. Escape returns to writing.",
   tabHintMac: "To reach the buttons, press Control, Option and F. Escape returns to writing.",
 
@@ -63,6 +65,7 @@ export const S = {
 
   // Page count, announced to screen readers only
   pageCount: (n: number) => (n === 1 ? "Now 1 page." : `Now ${n} pages.`),
+  paperPageCount: (n: number) => (n === 1 ? "Now 1 page on paper." : `Now ${n} pages on paper.`),
 
   // New / Open confirmation dialog
   dlgNewTitle: "Start a new page?",
