@@ -10,7 +10,7 @@ test("settings are pending until Apply, and Reset opens a confirm dialog", async
   await expect(page.locator("#bar input[type=radio]")).toHaveCount(0);
 
   await page.getByRole("button", { name: "Settings", exact: true }).click();
-  await page.getByRole("radio", { name: "Plain letters" }).check();
+  await page.getByRole("radio", { name: "Sans-serif" }).check();
   await page.getByRole("radio", { name: "Large", exact: true }).check();
   await expect(root).toHaveAttribute("data-font", "serif");
   await expect(root).toHaveAttribute("data-size", "regular");
@@ -25,7 +25,7 @@ test("settings are pending until Apply, and Reset opens a confirm dialog", async
   await expect(page.locator("#dlgTitle")).toHaveText("Reset to default settings?");
   await page.locator("#dlgKeep").click();
   await expect(page.locator("#settingsDlg")).toBeVisible();
-  await expect(page.getByRole("radio", { name: "Plain letters" })).toBeChecked();
+  await expect(page.getByRole("radio", { name: "Sans-serif" })).toBeChecked();
   await expect(root).toHaveAttribute("data-font", "sans");
   await expect(root).toHaveAttribute("data-size", "large");
 
@@ -42,7 +42,7 @@ test("Cancel and Escape discard choices and return to the writing selection", as
   await ta.evaluate((node: HTMLTextAreaElement) => node.setSelectionRange(2, 7));
   for (const dismiss of ["cancel", "escape"] as const) {
     await page.getByRole("button", { name: "Settings", exact: true }).click();
-    await page.getByRole("radio", { name: "Plain letters" }).check();
+    await page.getByRole("radio", { name: "Sans-serif" }).check();
     await page.getByRole("radio", { name: "Regular", exact: true }).check();
     if (dismiss === "cancel") await page.getByRole("button", { name: "Cancel", exact: true }).click();
     else await page.keyboard.press("Escape");
@@ -53,13 +53,13 @@ test("Cancel and Escape discard choices and return to the writing selection", as
     await expect(page.locator("html")).toHaveAttribute("data-size", "regular");
   }
   await page.getByRole("button", { name: "Settings", exact: true }).click();
-  await expect(page.getByRole("radio", { name: "Book letters" })).toBeChecked();
+  await expect(page.getByRole("radio", { name: "Serif", exact: true })).toBeChecked();
   await expect(page.getByRole("radio", { name: "Regular", exact: true })).toBeChecked();
 });
 
 test("applied choices survive closing the tab and opening another", async ({ page, context }) => {
   await page.getByRole("button", { name: "Settings", exact: true }).click();
-  await page.getByRole("radio", { name: "Plain letters" }).check();
+  await page.getByRole("radio", { name: "Sans-serif" }).check();
   await page.getByRole("radio", { name: "Large", exact: true }).check();
   await page.getByRole("radio", { name: "Dark", exact: true }).check();
   await page.getByRole("button", { name: "Apply", exact: true }).click();
@@ -70,7 +70,7 @@ test("applied choices survive closing the tab and opening another", async ({ pag
   await expect(reopened.locator("html")).toHaveAttribute("data-size", "large");
   await expect(reopened.locator("html")).toHaveAttribute("data-theme", "dark");
   await reopened.getByRole("button", { name: "Settings", exact: true }).click();
-  await expect(reopened.getByRole("radio", { name: "Plain letters" })).toBeChecked();
+  await expect(reopened.getByRole("radio", { name: "Sans-serif" })).toBeChecked();
   await expect(reopened.getByRole("radio", { name: "Large", exact: true })).toBeChecked();
   await expect(reopened.getByRole("radio", { name: "Dark", exact: true })).toBeChecked();
 });
@@ -114,7 +114,7 @@ test("the compact toolbar and settings remain usable in a small zoomed viewport"
 
 test("keyboard focus cycles within settings", async ({ page }) => {
   await page.getByRole("button", { name: "Settings", exact: true }).click();
-  const firstChoice = page.getByRole("radio", { name: "Book letters", exact: true });
+  const firstChoice = page.getByRole("radio", { name: "Serif", exact: true });
   const apply = page.getByRole("button", { name: "Apply", exact: true });
   await apply.focus();
   await page.keyboard.press("Tab");

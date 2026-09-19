@@ -14,8 +14,8 @@ export const S = {
   settings: "Settings",
 
   letters: "Letters",
-  lettersBook: "Book letters",
-  lettersPlain: "Plain letters",
+  lettersSerif: "Serif",
+  lettersSansSerif: "Sans-serif",
 
   fontSize: "Font size",
   sizeRegular: "Regular",

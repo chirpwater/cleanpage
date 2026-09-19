@@ -25,8 +25,8 @@ test("nothing goes over the wire once the page is open", async ({ page, context 
   await page.keyboard.type(SECRET);
   await setText(page, CORPUS);
   await page.getByRole("button", { name: "Settings", exact: true }).click();
-  await page.getByRole("radio", { name: "Plain letters" }).click();
-  await page.getByRole("radio", { name: "Book letters" }).click();
+  await page.getByRole("radio", { name: "Sans-serif" }).click();
+  await page.getByRole("radio", { name: "Serif", exact: true }).click();
   await page.getByRole("radio", { name: "Large", exact: true }).click();
   await page.getByRole("button", { name: "Apply", exact: true }).click();
   await page.emulateMedia({ media: "print" });
@@ -52,7 +52,7 @@ test("only settings persist; writing stays out of browser storage and caches", a
   await page.keyboard.type(SECRET);
   await setText(page, CORPUS + "\n" + SECRET + "\n");
   await page.getByRole("button", { name: "Settings", exact: true }).click();
-  await page.getByRole("radio", { name: "Plain letters" }).click();
+  await page.getByRole("radio", { name: "Sans-serif" }).click();
   await page.getByRole("radio", { name: "Large", exact: true }).click();
   await page.getByRole("button", { name: "Apply", exact: true }).click();
   await settle(page);
