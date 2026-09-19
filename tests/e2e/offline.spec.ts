@@ -2,7 +2,8 @@ import { expect, test } from "@playwright/test";
 import { open, ready, setText, settle } from "./helpers.js";
 
 test("offline caches are isolated from other applications and installation paths", async ({ page, context }) => {
-  await page.goto("/privacy.html");
+  await page.route("**/cache-seed", (route) => route.fulfill({ contentType: "text/html", body: "<!doctype html>" }));
+  await page.goto("/cache-seed");
   const seeded = await page.evaluate(async () => {
     const scope = new URL("./", location.href).href;
     const foreign = "another-app-offline";
@@ -38,8 +39,6 @@ test("offline caches are isolated from other applications and installation paths
     await page.goto(path);
     await ready(page);
     await expect(page.locator("#ta")).toBeVisible();
-    // Opening Settings pulls in the bundled logo; if the offline cache were
-    // missing it, the request would show up in `failed` below.
     await page.getByRole("button", { name: "Settings", exact: true }).click();
     await page.getByRole("button", { name: "Cancel", exact: true }).click();
   }
@@ -73,8 +72,7 @@ test("after one visit the page loads and works with the network off", async ({ p
 
   // It is not enough that the document came back: the field has to be there
   // and the real faces have to be usable, or wrap and lines-per-page change
-  // silently. Opening Settings then has to pull the bundled logo from the
-  // cache rather than failing to load it.
+  // silently.
   const state = await page.evaluate(() => ({
     hasField: !!document.getElementById("ta"),
     serifLoaded: document.fonts.check('16px "Liberation Serif"'),

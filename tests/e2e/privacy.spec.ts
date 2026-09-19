@@ -104,9 +104,7 @@ test("only settings persist; writing stays out of browser storage and caches", a
   expect(storage["leak"], "no cached response contains the child's writing").toBe(false);
   for (const p of storage["cached"] as string[]) {
     expect(p, "only the application's own files are cached").toMatch(
-      // The published statements and the font licences are precached like
-      // everything else, so a reviewer can still read them with the network off.
-      /(\/|index\.html|privacy\.html|accessibility\.html|app\.js|app\.css|doc\.css|favicon\.svg|manifest\.webmanifest|\.woff2|\.png|\.txt)$/,
+      /(\/|index\.html|app\.js|app\.css|favicon\.svg|manifest\.webmanifest|\.woff2|\.png|\.txt)$/,
     );
   }
 });
@@ -122,7 +120,7 @@ test("the page declares no third-party anything", async ({ page }) => {
   expect(externals, "no CDN, no analytics, no web font service").toEqual([]);
 });
 
-test("the authorship logo loads from this application without contacting ChirpWater", async ({ page, context }) => {
+test("About identifies the build and links to the companion site without loading it", async ({ page, context }) => {
   const requested: string[] = [];
   context.on("request", (request) => requested.push(request.url()));
   await page.goto("./");
@@ -130,6 +128,7 @@ test("the authorship logo loads from this application without contacting ChirpWa
   await swSettled(page);
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   const origin = new URL(page.url()).origin;
-  expect(requested.some((url) => new URL(url).pathname.endsWith("/chirpwater-logo.png"))).toBe(true);
-  expect(requested.filter((url) => new URL(url).origin !== origin), "the logo is bundled, not hotlinked").toEqual([]);
+  await expect(page.locator("#appVersion")).toHaveText(process.env.CP_BUILD_REF && process.env.CP_BUILD_REF !== "main" ? process.env.CP_BUILD_REF : "development edition");
+  await expect(page.locator("#settingsAbout a")).toHaveAttribute("href", "https://www.cleanpage.org");
+  expect(requested.filter((url) => new URL(url).origin !== origin), "opening About makes no external requests").toEqual([]);
 });

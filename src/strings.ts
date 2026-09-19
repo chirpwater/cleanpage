@@ -31,12 +31,7 @@ export const S = {
   previewSize: "Aa",
 
   about: "About",
-  freeSoftware: "Clean Page is free software created by",
-  authorName: "ChirpWater, LLC.",
-  sourceLink: "github.com/chirpwater/cleanpage",
-  privacyLink: "Privacy Policy",
-  devVersion: "dev",
-  version: (version: string) => `version ${version}`,
+  website: "https://www.cleanpage.org",
 
   downloadTitle: "Download your writing",
   downloadName: "File name",

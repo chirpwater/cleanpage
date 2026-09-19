@@ -17,3 +17,9 @@ Writing lasts only while the page is open. Closing or reloading the tab clears i
 Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
 
 Sponsored by [ChirpWater LLC](https://chirpwater.com).
+
+## Builds
+
+`npm run build` produces a development edition. Release builds use `CP_BUILD_REF=v0.2.0 npm run build` (substitute the release tag). The dev deployment sets `CP_BUILD_REF=main`; production checks out and builds the published release tag. Manual production deployments require a release tag.
+
+Product information and statements are maintained at [www.cleanpage.org](https://www.cleanpage.org).

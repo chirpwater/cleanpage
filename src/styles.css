@@ -476,12 +476,6 @@ dialog .btn {
 #settingsAbout a {
   color: inherit;
 }
-.authorship-mark {
-  display: inline-block;
-  width: 22px;
-  height: auto;
-  vertical-align: -5px;
-}
 .settings-actions {
   position: sticky;
   bottom: -20px;

@@ -148,106 +148,6 @@ test("under the shipped CSP the worker precaches every emitted file and the page
   await context.setOffline(false);
 });
 
-/**
- * PROPOSAL requires the privacy statement to be published "with the site AND in
- * the repository", and the accessibility statement "with the site". Only the
- * repository half was ever met: `dist/` shipped neither file and the page
- * linked to neither, so a district reviewer handed the URL found no statement
- * at all. They are generated into the build from the repository copies now —
- * and they have to survive the same policy the app does, which is why this
- * test lives here and not in a spec that runs under `vite preview`: an inline
- * `<style>` block in a generated page would be refused by `style-src 'self'`
- * on the real host while looking perfect locally.
- */
-for (const path of ["/privacy.html", "/accessibility.html"] as const) {
-  test(`${path} is published with the site, styled, under the real policy`, async ({
-    page,
-    context,
-  }) => {
-    const violations: string[] = [];
-    page.on("console", (m) => {
-      if (/Content Security Policy|Refused to/i.test(m.text())) violations.push(m.text());
-    });
-    const failed: string[] = [];
-    page.on("requestfailed", (r) => failed.push(r.url()));
-
-    const res = await page.goto(path);
-    expect(res?.status(), `${path} is served`).toBe(200);
-    expect(violations, "no CSP violation on the statement page").toEqual([]);
-    expect(failed, "the statement's own stylesheet loads").toEqual([]);
-
-    // The external stylesheet really applied — an unstyled statement is what a
-    // refused inline <style> would look like.
-    const styled = await page.evaluate(() => ({
-      main: getComputedStyle(document.querySelector("main")!).maxWidth,
-      back: document.querySelector("a.back")?.getAttribute("href"),
-    }));
-    expect(styled.main, "doc.css was applied").not.toBe("none");
-    expect(styled.back, "and there is a way back to the writing").toBe("./");
-
-    /*
-     * Everything above is the FIRST visit, with no worker in control — which is
-     * all this test used to exercise, and it is the one visit that was never
-     * broken. From the second visit on, the worker answered every navigation
-     * from the cached app shell whatever URL was asked for, so the reviewer who
-     * had already opened the tool once got the typewriter under
-     * /privacy.html — online as well as offline, with `document.title`
-     * "Clean Page", no `h1` at all and `#ta` present. Only a hard reload,
-     * which bypasses the worker, brought the statement back.
-     *
-     * So: take control, and ask again.
-     */
-    await page.goto("/");
-    const reg = await page.evaluate(async () => {
-      if (!navigator.serviceWorker) return "unsupported";
-      await navigator.serviceWorker.ready;
-      return "ready";
-    });
-    test.skip(reg === "unsupported", "this browser has no service worker");
-    await page.reload();
-    await page.waitForFunction(() => !!navigator.serviceWorker.controller);
-
-    for (const offline of [false, true]) {
-      await context.setOffline(offline);
-      const where = offline ? "offline" : "online";
-      const res2 = await page.goto(path);
-      expect(res2?.status(), `${path} under the worker, ${where}`).toBe(200);
-      const seen = await page.evaluate(() => ({
-        controller: !!navigator.serviceWorker.controller,
-        // What makes it a statement page is its shape, not its wording: a
-        // heading and the link back to the writing, which the app shell has
-        // neither of.
-        statement:
-          !!document.querySelector("h1") && !!document.querySelector("a.back[href='./']"),
-        typewriter: !!document.getElementById("ta"),
-      }));
-      expect(seen.controller, `${where}: the worker really is in control`).toBe(true);
-      expect(seen.statement, `${where}: the statement, not the writing app`).toBe(true);
-      expect(seen.typewriter, `${where}: this must not be the typewriter`).toBe(false);
-    }
-
-    // And the shell fallback that §8 exists for is still there: a URL the build
-    // never emitted must still open the app, offline.
-    await page.goto("/deep/link/that/does/not/exist");
-    expect(
-      await page.evaluate(() => !!document.getElementById("ta")),
-      "an unknown path still falls back to the app shell",
-    ).toBe(true);
-    await context.setOffline(false);
-  });
-}
-
-test("the page itself points at both statements on its own origin", async ({ page }) => {
-  await page.goto("/");
-  const links = await page.evaluate(() =>
-    Array.from(document.querySelectorAll<HTMLLinkElement>("head link[rel]")).map(
-      (l) => `${l.rel} ${l.getAttribute("href")}`,
-    ),
-  );
-  expect(links).toContain("privacy-policy ./privacy.html");
-  expect(links).toContain("help ./accessibility.html");
-});
-
 test("the policy grants nothing the build does not use", async ({ page }) => {
   // `img-src 'self' data:` was a vestige of an inline data-URI favicon that
   // never shipped (DECISIONS 5.18): `assetsInlineLimit: 0` means Vite cannot
@@ -266,13 +166,13 @@ test("the policy grants nothing the build does not use", async ({ page }) => {
   // DECISIONS 9.16 and the CSSOM-only test overrides depend on.
   expect(policy, "a <style> element stays refused").not.toContain("style-src-elem");
   expect(policy).toContain("style-src 'self'");
-  for (const f of ["index.html", "privacy.html", "accessibility.html"]) {
+  for (const f of ["index.html"]) {
     expect(
       readFileSync(join(REPO, "dist", f), "utf8"),
       `${f} ships no style attribute of its own`,
     ).not.toMatch(/\sstyle="/);
   }
-  for (const f of ["index.html", "app.css", "app.js", "privacy.html", "accessibility.html"]) {
+  for (const f of ["index.html", "app.css", "app.js"]) {
     expect(readFileSync(join(REPO, "dist", f), "utf8"), `${f} uses no data: URI`).not.toMatch(
       /url\(\s*["']?data:/,
     );

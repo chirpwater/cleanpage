@@ -31,6 +31,8 @@ jobs:
       - run: npm run typecheck && npm run test:unit
 
       - run: npm run build
+        env:
+          CP_BUILD_REF: main
 
       - run: npx --yes wrangler@4 deploy --env dev
         env:

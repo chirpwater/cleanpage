@@ -25,16 +25,6 @@ self.addEventListener("activate", (e) => {
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET" || new URL(e.request.url).origin !== location.origin) return;
   if (e.request.mode === "navigate") {
-    // Try the REAL document first, and fall back to the app shell only when the
-    // requested page is not one of ours. Answering every navigation from
-    // `./index.html` made the two published statements unreachable the moment
-    // this worker took control: a returning visitor — the teacher, or the
-    // district reviewer following the link in the email — asked for
-    // `/privacy.html` and got the typewriter, online and offline alike, with
-    // only a hard reload (which bypasses the worker) to recover them. Both
-    // statements are precached; they were simply never served. The shell
-    // fallback stays, because a deep link into a single-page app is what §8
-    // exists for.
     e.respondWith(
       caches.open(CACHE).then(async (cache) => {
         const document = await cache.match(e.request, { ignoreVary: true, ignoreSearch: true });

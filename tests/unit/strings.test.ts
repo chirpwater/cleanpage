@@ -33,10 +33,7 @@ const IN_MARKUP = [
   "previewLetters",
   "previewSize",
   "about",
-  "freeSoftware",
-  "authorName",
-  "sourceLink",
-  "privacyLink",
+  "website",
   "downloadTitle",
   "downloadName",
   "pageLabel",
@@ -63,8 +60,6 @@ const IN_CODE = [
   "errOk",
   "settingsStorageError",
   "downloadNameRequired",
-  "version",
-  "devVersion",
   "resetTitle",
 ] as const;
 

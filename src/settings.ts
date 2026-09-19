@@ -1,4 +1,3 @@
-import { version } from "../package.json";
 import { S } from "./strings.js";
 import { ask } from "./ui.js";
 
@@ -29,9 +28,7 @@ export function initSettings(
   const dialog = document.getElementById("settingsDlg") as HTMLDialogElement;
   const form = document.getElementById("settingsForm") as HTMLFormElement;
   const resetButton = document.getElementById("settingsReset") as HTMLButtonElement;
-  document.getElementById("appVersion")!.textContent = S.version(
-    import.meta.env.PROD ? version : S.devVersion,
-  );
+  document.getElementById("appVersion")!.textContent = import.meta.env.CP_VERSION;
   let committed = { ...initial };
 
   function updatePreviews(): void {

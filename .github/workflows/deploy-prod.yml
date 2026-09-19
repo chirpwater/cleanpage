@@ -3,7 +3,12 @@ name: Deploy production
 on:
   release:
     types: [published]
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag (v-prefixed semver)
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -20,6 +25,8 @@ jobs:
       url: https://cleanpage.app/
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
 
       - uses: actions/setup-node@v4
         with:
@@ -31,6 +38,8 @@ jobs:
       - run: npm run typecheck && npm run test:unit
 
       - run: npm run build
+        env:
+          CP_BUILD_REF: ${{ github.event.release.tag_name || inputs.tag }}
 
       - run: npx --yes wrangler@4 deploy
         env:
