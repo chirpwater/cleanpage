@@ -75,12 +75,12 @@ test("after one visit the page loads and works with the network off", async ({ p
   // silently.
   const state = await page.evaluate(() => ({
     hasField: !!document.getElementById("ta"),
-    serifLoaded: document.fonts.check('16px "Liberation Serif"'),
-    dysLoaded: document.fonts.check('16px "OpenDyslexic"'),
+    serifLoaded: document.fonts.check('16px "Source Serif 4"'),
+    sansLoaded: document.fonts.check('16px "Source Sans 3"'),
   }));
   expect(state.hasField).toBe(true);
   expect(state.serifLoaded, "the real font, not a substitute").toBe(true);
-  expect(state.dysLoaded).toBe(true);
+  expect(state.sansLoaded).toBe(true);
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   expect(failed, "nothing failed to load offline").toEqual([]);

@@ -389,9 +389,9 @@ async function boot(): Promise<void> {
   history.reset();
   layout();
   refreshDirty();
-  void document.fonts.load('16px "OpenDyslexic"').catch(() => {});
+  void document.fonts.load('16px "Source Sans 3"').catch(() => {});
   try {
-    await document.fonts.load('16px "Liberation Serif"');
+    await document.fonts.load('16px "Source Serif 4"');
   } catch {
   }
   clearCache();

@@ -39,7 +39,7 @@ test("the real response headers arrive, and the CSP is the one in public/_header
     ["/*", "/"],
     ["/*", "/sw.js"],
     ["/*", "/app.js"],
-    ["/fonts/*", "/fonts/LiberationSerif-Regular.woff2"],
+    ["/fonts/*", "/fonts/SourceSerif4-Regular.woff2"],
   ];
   for (const [pattern, path] of cases) {
     const res = await request.get(path);
@@ -131,7 +131,7 @@ test("under the shipped CSP the worker precaches every emitted file and the page
       width: ta ? getComputedStyle(ta).width : null,
       lineHeight: ta ? getComputedStyle(ta).lineHeight : null,
       sheet: getComputedStyle(document.getElementById("sheet")!).width,
-      serifLoaded: document.fonts.check('16px "Liberation Serif"'),
+      serifLoaded: document.fonts.check('16px "Source Serif 4"'),
     };
   });
   expect(state.hasField).toBe(true);
@@ -188,7 +188,7 @@ test("the CSP does not block anything the page actually does", async ({ page }) 
   });
   await open(page);
   await setText(page, Array.from({ length: 40 }, (_, i) => `line ${i}`).join("\n"));
-  await chooseFont(page, "dys");
+  await chooseFont(page, "sans");
   await chooseSize(page, "large");
   // Tab is the one gesture that makes the ENGINE write style of its own:
   // `document.execCommand("insertText", …)` (DECISIONS 5.9) makes WebKit apply

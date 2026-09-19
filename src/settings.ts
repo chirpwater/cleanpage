@@ -2,7 +2,7 @@ import { S } from "./strings.js";
 import { ask } from "./ui.js";
 
 export type Settings = {
-  font: "serif" | "dys";
+  font: "serif" | "sans";
   size: "regular" | "large";
   theme: "light" | "dark";
 };
@@ -32,7 +32,7 @@ export function initSettings(
   let committed = { ...initial };
 
   function updatePreviews(): void {
-    const font = new FormData(form).get("font") === "dys" ? "dys" : "serif";
+    const font = new FormData(form).get("font") === "sans" ? "sans" : "serif";
     for (const sample of form.querySelectorAll<HTMLElement>(".size-preview")) {
       sample.dataset.previewFont = font;
     }
@@ -50,7 +50,7 @@ export function initSettings(
     event.preventDefault();
     const values = new FormData(form);
     committed = {
-      font: values.get("font") === "dys" ? "dys" : "serif",
+      font: values.get("font") === "sans" ? "sans" : "serif",
       size: values.get("size") === "large" ? "large" : "regular",
       theme: values.get("theme") === "dark" ? "dark" : "light",
     };

@@ -20,7 +20,7 @@ const IN_MARKUP = [
   "settings",
   "letters",
   "lettersBook",
-  "lettersRound",
+  "lettersPlain",
   "fontSize",
   "sizeRegular",
   "sizeLarge",

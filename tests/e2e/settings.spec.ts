@@ -10,13 +10,13 @@ test("settings are pending until Apply, and Reset opens a confirm dialog", async
   await expect(page.locator("#bar input[type=radio]")).toHaveCount(0);
 
   await page.getByRole("button", { name: "Settings", exact: true }).click();
-  await page.getByRole("radio", { name: "Round letters" }).check();
+  await page.getByRole("radio", { name: "Plain letters" }).check();
   await page.getByRole("radio", { name: "Large", exact: true }).check();
   await expect(root).toHaveAttribute("data-font", "serif");
   await expect(root).toHaveAttribute("data-size", "regular");
   await page.getByRole("button", { name: "Apply", exact: true }).click();
   await expect(page.locator("#settingsDlg")).not.toBeVisible();
-  await expect(root).toHaveAttribute("data-font", "dys");
+  await expect(root).toHaveAttribute("data-font", "sans");
   await expect(root).toHaveAttribute("data-size", "large");
   await expect(page.locator("#ta")).toBeFocused();
 
@@ -25,8 +25,8 @@ test("settings are pending until Apply, and Reset opens a confirm dialog", async
   await expect(page.locator("#dlgTitle")).toHaveText("Reset to default settings?");
   await page.locator("#dlgKeep").click();
   await expect(page.locator("#settingsDlg")).toBeVisible();
-  await expect(page.getByRole("radio", { name: "Round letters" })).toBeChecked();
-  await expect(root).toHaveAttribute("data-font", "dys");
+  await expect(page.getByRole("radio", { name: "Plain letters" })).toBeChecked();
+  await expect(root).toHaveAttribute("data-font", "sans");
   await expect(root).toHaveAttribute("data-size", "large");
 
   await page.locator("#settingsReset").click();
@@ -42,7 +42,7 @@ test("Cancel and Escape discard choices and return to the writing selection", as
   await ta.evaluate((node: HTMLTextAreaElement) => node.setSelectionRange(2, 7));
   for (const dismiss of ["cancel", "escape"] as const) {
     await page.getByRole("button", { name: "Settings", exact: true }).click();
-    await page.getByRole("radio", { name: "Round letters" }).check();
+    await page.getByRole("radio", { name: "Plain letters" }).check();
     await page.getByRole("radio", { name: "Regular", exact: true }).check();
     if (dismiss === "cancel") await page.getByRole("button", { name: "Cancel", exact: true }).click();
     else await page.keyboard.press("Escape");
@@ -59,18 +59,18 @@ test("Cancel and Escape discard choices and return to the writing selection", as
 
 test("applied choices survive closing the tab and opening another", async ({ page, context }) => {
   await page.getByRole("button", { name: "Settings", exact: true }).click();
-  await page.getByRole("radio", { name: "Round letters" }).check();
+  await page.getByRole("radio", { name: "Plain letters" }).check();
   await page.getByRole("radio", { name: "Large", exact: true }).check();
   await page.getByRole("radio", { name: "Dark", exact: true }).check();
   await page.getByRole("button", { name: "Apply", exact: true }).click();
   await page.close();
   const reopened = await context.newPage();
   await reopened.goto("/");
-  await expect(reopened.locator("html")).toHaveAttribute("data-font", "dys");
+  await expect(reopened.locator("html")).toHaveAttribute("data-font", "sans");
   await expect(reopened.locator("html")).toHaveAttribute("data-size", "large");
   await expect(reopened.locator("html")).toHaveAttribute("data-theme", "dark");
   await reopened.getByRole("button", { name: "Settings", exact: true }).click();
-  await expect(reopened.getByRole("radio", { name: "Round letters" })).toBeChecked();
+  await expect(reopened.getByRole("radio", { name: "Plain letters" })).toBeChecked();
   await expect(reopened.getByRole("radio", { name: "Large", exact: true })).toBeChecked();
   await expect(reopened.getByRole("radio", { name: "Dark", exact: true })).toBeChecked();
 });

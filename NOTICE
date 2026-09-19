@@ -2,31 +2,32 @@ Clean Page
 Copyright 2026 ChirpWater LLC
 Licensed under the Apache License, Version 2.0.
 
-This product bundles the following fonts, each used unmodified under the
-SIL Open Font License, Version 1.1 (see LICENSES/OFL-1.1.txt):
+This product bundles the following fonts under the SIL Open Font License,
+Version 1.1 (see LICENSES/OFL-1.1.txt):
 
-  Liberation Serif 2.1 (Regular) - public/fonts/LiberationSerif-Regular.woff2
-    Digitized data copyright (c) 2010 Google Corporation
-      with Reserved Font Names Arimo, Tinos and Cousine.
-    Copyright (c) 2012 Red Hat, Inc. with Reserved Font Name "Liberation".
-    https://github.com/liberationfonts/liberation-fonts
+  Source Serif 4 4.004 (Regular) - public/fonts/SourceSerif4-Regular.woff2
+    Copyright 2014-2021 Adobe Systems Incorporated (http://www.adobe.com/),
+      with Reserved Font Name "Source".
+    https://github.com/adobe-fonts/source-serif
     The upstream TrueType binary is committed alongside it as
-    public/fonts/LiberationSerif-Regular.ttf
-    (sha256 705903ae1382f0150f115d6f10a30f5b2f3d6ade649c474afe6366c39174fb65).
+    public/fonts/SourceSerif4-Regular.ttf
+    (sha256 d47da11c5f55f031d9ec54c3172865d76009b2cbab5c706dfa73866b00096639).
     The WOFF2 is a lossless container conversion of that exact file, produced
-    by `woff2_compress LiberationSerif-Regular.ttf` (woff2 1.0.2) and
-    reproducible from it byte for byte
-    (sha256 92fb684da0b27c05c8e3b6c5ff071a062cbb3db7bc472c4099c209be89e87416).
-    The OFL permits it and it is universally treated as not a modification;
-    the glyph outlines, metrics and family name are unchanged. Upstream copyright text is kept verbatim in
-    public/fonts/OFL-LiberationFonts-copyright.txt.
+    by `woff2_compress SourceSerif4-Regular.ttf` (woff2 1.0.2) and reproducible
+    from it byte for byte
+    (sha256 2bd0121b460833680bd3c2f256ed44e8c939cb4d91a72a59aa153dad064f9188).
 
-  OpenDyslexic 0.91.12 (Regular) - public/fonts/OpenDyslexic-Regular.woff2
-    Copyright (c) 2019-07-29 Abbie Gonzalez (https://abbiecod.es),
-      with Reserved Font Name "OpenDyslexic".
-    Copyright (c) 12/2012 - 2019
-    https://opendyslexic.org
-    Upstream licence and changelog are kept verbatim in
-    public/fonts/OFL-OpenDyslexic.txt and public/fonts/FONTLOG-OpenDyslexic.txt.
+  Source Sans 3 3.052 (Regular) - public/fonts/SourceSans3-Regular.woff2
+    Copyright 2010-2020 Adobe (http://www.adobe.com/), with Reserved Font Name
+      "Source". All Rights Reserved. Source is a trademark of Adobe in the
+      United States and/or other countries.
+    https://github.com/adobe-fonts/source-sans
+    The upstream TrueType binary is committed alongside it as
+    public/fonts/SourceSans3-Regular.ttf
+    (sha256 393fb5b878ceed04aebc34b097e853ae5138c51d0c34b496ce8e2b47e0d0b94a).
+    The WOFF2 is a lossless container conversion of that exact file, produced
+    by `woff2_compress SourceSans3-Regular.ttf` (woff2 1.0.2) and reproducible
+    from it byte for byte
+    (sha256 32d31962a0b132027de9a4e3372f64b1b081d51bd3a80380fbec6cbfb1adde16).
 
 "Clean Page" and "ChirpWater" are not licensed under the Apache License.

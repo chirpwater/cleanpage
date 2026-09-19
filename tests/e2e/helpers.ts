@@ -82,7 +82,7 @@ export async function settle(page: Page): Promise<void> {
   await page.waitForTimeout(600);
 }
 
-export async function chooseFont(page: Page, font: "serif" | "dys"): Promise<void> {
+export async function chooseFont(page: Page, font: "serif" | "sans"): Promise<void> {
   await page.locator("#btnSettings").click();
   await page.locator(`input[name="font"][value="${font}"]`).check();
   await page.locator("#settingsApply").click();

@@ -15,7 +15,7 @@ export const S = {
 
   letters: "Letters",
   lettersBook: "Book letters",
-  lettersRound: "Round letters",
+  lettersPlain: "Plain letters",
 
   fontSize: "Font size",
   sizeRegular: "Regular",

@@ -22,7 +22,7 @@ function crop(png: PNG, w: number, h: number): PNG {
   return out;
 }
 
-for (const font of ["serif", "dys"] as const) {
+for (const font of ["serif", "sans"] as const) {
   test(`wrap parity, ${font}: the textarea and the mirror contract render identical pixels`, async ({
     page,
   }, testInfo) => {

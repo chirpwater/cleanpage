@@ -37,7 +37,7 @@ test("only applied settings survive tab closure, and resetting settings preserve
   await ready(page);
   await page.locator("#ta").fill(STORY);
   await page.locator("#btnSettings").click();
-  await page.getByRole("radio", { name: "Round letters" }).check();
+  await page.getByRole("radio", { name: "Plain letters" }).check();
   await page.getByRole("radio", { name: "Large", exact: true }).check();
   await page.getByRole("radio", { name: "Dark", exact: true }).check();
   await page.locator("#settingsApply").click();
@@ -49,7 +49,7 @@ test("only applied settings survive tab closure, and resetting settings preserve
   await reopened.goto("./");
   await ready(reopened);
   await expect(reopened.locator("#ta")).toHaveValue("");
-  await expect(reopened.locator("html")).toHaveAttribute("data-font", "dys");
+  await expect(reopened.locator("html")).toHaveAttribute("data-font", "sans");
   await expect(reopened.locator("html")).toHaveAttribute("data-size", "large");
   await expect(reopened.locator("html")).toHaveAttribute("data-theme", "dark");
   await reopened.locator("#ta").fill(STORY);

@@ -358,18 +358,16 @@ test("switching typeface repaginates the document", async ({ page }) => {
 
   const serif = await geometry(page);
 
-  await chooseFont(page, "dys");
-  const dys = await geometry(page);
+  await chooseFont(page, "sans");
+  const sans = await geometry(page);
 
-  // Normalized OpenDyslexic is still a wider face for this corpus, so the
-  // rewrap has to change the page count and every sheet has to follow it.
-  expect(dys.pages).toBeGreaterThan(serif.pages);
-  expect(dys.taHeight).toBe(dys.pages * 960);
-  expect(dys.sheetHeight).toBe(dys.pages * 960 + 96);
-  expect(dys.ruleTops).toEqual(
-    Array.from({ length: dys.pages - 1 }, (_, i) => 48 + (i + 1) * 960),
+  expect(sans.pages).not.toBe(serif.pages);
+  expect(sans.taHeight).toBe(sans.pages * 960);
+  expect(sans.sheetHeight).toBe(sans.pages * 960 + 96);
+  expect(sans.ruleTops).toEqual(
+    Array.from({ length: sans.pages - 1 }, (_, i) => 48 + (i + 1) * 960),
   );
-  expect(dys.printPages).toBe(dys.pages);
+  expect(sans.printPages).toBe(sans.pages);
   await expect(page.locator("#ta"), "focus comes back to the writing").toBeFocused();
 
   // And back again: the count returns to exactly what it was.

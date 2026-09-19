@@ -15,16 +15,16 @@ describe("settings storage", () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it("persists only font, size, and color choices", () => {
-    const settings = { font: "dys", size: "large", theme: "dark", text: "Private writing" } as const;
+    const settings = { font: "sans", size: "large", theme: "dark", text: "Private writing" } as const;
     expect(writeSettings(settings)).toBe(true);
-    expect(readSettings()).toEqual({ font: "dys", size: "large", theme: "dark" });
+    expect(readSettings()).toEqual({ font: "sans", size: "large", theme: "dark" });
     expect([...values.keys()]).toEqual([SETTINGS_KEY]);
-    expect(JSON.parse(values.get(SETTINGS_KEY)!)).toEqual({ font: "dys", size: "large", theme: "dark" });
+    expect(JSON.parse(values.get(SETTINGS_KEY)!)).toEqual({ font: "sans", size: "large", theme: "dark" });
   });
 
   it("migrates earlier sizes and a missing theme to the new defaults", () => {
     values.set(SETTINGS_KEY, JSON.stringify({ font: "dys", size: "small" }));
-    expect(readSettings()).toEqual({ font: "dys", size: "regular", theme: "light" });
+    expect(readSettings()).toEqual({ font: "sans", size: "regular", theme: "light" });
     values.set(SETTINGS_KEY, JSON.stringify({ font: "serif", size: "medium", theme: "system" }));
     expect(readSettings()).toEqual({ font: "serif", size: "regular", theme: "light" });
   });
@@ -49,7 +49,7 @@ describe("settings storage", () => {
   });
 
   it("reports quota failure without replacing saved settings", () => {
-    const settings = { font: "dys", size: "large", theme: "dark" } as const;
+    const settings = { font: "sans", size: "large", theme: "dark" } as const;
     writeSettings(settings);
     localStorage.setItem = () => { throw new DOMException("Full", "QuotaExceededError"); };
     expect(writeSettings({ font: "serif", size: "regular", theme: "light" })).toBe(false);

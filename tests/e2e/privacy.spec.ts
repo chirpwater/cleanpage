@@ -25,7 +25,7 @@ test("nothing goes over the wire once the page is open", async ({ page, context 
   await page.keyboard.type(SECRET);
   await setText(page, CORPUS);
   await page.getByRole("button", { name: "Settings", exact: true }).click();
-  await page.getByRole("radio", { name: "Round letters" }).click();
+  await page.getByRole("radio", { name: "Plain letters" }).click();
   await page.getByRole("radio", { name: "Book letters" }).click();
   await page.getByRole("radio", { name: "Large", exact: true }).click();
   await page.getByRole("button", { name: "Apply", exact: true }).click();
@@ -52,7 +52,7 @@ test("only settings persist; writing stays out of browser storage and caches", a
   await page.keyboard.type(SECRET);
   await setText(page, CORPUS + "\n" + SECRET + "\n");
   await page.getByRole("button", { name: "Settings", exact: true }).click();
-  await page.getByRole("radio", { name: "Round letters" }).click();
+  await page.getByRole("radio", { name: "Plain letters" }).click();
   await page.getByRole("radio", { name: "Large", exact: true }).click();
   await page.getByRole("button", { name: "Apply", exact: true }).click();
   await settle(page);
@@ -94,7 +94,7 @@ test("only settings persist; writing stays out of browser storage and caches", a
   const session = storage["sessionStorage"] as Record<string, string>;
   expect(session).toEqual({});
   expect(Object.keys(local)).toEqual([SETTINGS_KEY]);
-  expect(JSON.parse(local[SETTINGS_KEY]!)).toEqual({ font: "dys", size: "large", theme: "light" });
+  expect(JSON.parse(local[SETTINGS_KEY]!)).toEqual({ font: "sans", size: "large", theme: "light" });
   expect(JSON.stringify(storage), "browser storage never contains writing").not.toContain(SECRET);
   expect(storage["cookie"]).toBe("");
   expect(storage["idb"]).toEqual([]);

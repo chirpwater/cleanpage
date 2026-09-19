@@ -1,21 +1,13 @@
 @font-face {
-  font-family: "OpenDyslexic";
-  src: url("/fonts/OpenDyslexic-Regular.woff2") format("woff2");
+  font-family: "Source Sans 3";
+  src: url("/fonts/SourceSans3-Regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
-  size-adjust: 80%;
 }
 
-:root {
-  --round-letter-spacing: -0.06em;
-  --round-word-spacing: -0.35em;
-}
-
-html[data-font="dys"] .tp-text,
-.font-preview[data-preview-font="dys"],
-.size-preview[data-preview-font="dys"] {
-  font-family: "OpenDyslexic", sans-serif;
-  letter-spacing: var(--round-letter-spacing);
-  word-spacing: var(--round-word-spacing);
+html[data-font="sans"] .tp-text,
+.font-preview[data-preview-font="sans"],
+.size-preview[data-preview-font="sans"] {
+  font-family: "Source Sans 3", sans-serif;
 }
