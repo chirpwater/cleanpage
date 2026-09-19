@@ -51,8 +51,6 @@ export const S = {
 
   // The writing surface
   pageLabel: "Your writing",
-  breaksHidden:
-    "This window is too narrow to show where the pages end. Printing still breaks them in the same places.",
   tabHint: "To reach the buttons, press Alt and F. Escape returns to writing.",
   tabHintMac: "To reach the buttons, press Control, Option and F. Escape returns to writing.",
 

@@ -41,7 +41,6 @@ const IN_MARKUP = [
   "downloadTitle",
   "downloadName",
   "pageLabel",
-  "breaksHidden",
   "tabHint",
   "saved",
 ] as const;

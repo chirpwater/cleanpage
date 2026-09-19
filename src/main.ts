@@ -26,7 +26,6 @@ const bar = $("bar");
 const sheet = $("sheet");
 const mirror = $<HTMLPreElement>("mirror");
 const breaks = $("breaks");
-const breaknote = $("breaknote");
 const printHost = $("printdoc");
 const status = $("status");
 const statusWord = $("statusWord");
@@ -86,7 +85,6 @@ function layout(): void {
     ta.style.height = pages * pageH + "px";
   }
   renderBreaks(breaks, narrow ? 1 : pages, pageH);
-  breaknote.hidden = !narrow;
   printDoc.schedule();
   announcePages(pages);
 }
