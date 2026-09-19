@@ -44,11 +44,12 @@ test("the real response headers arrive, and the CSP is the one in public/_header
     const res = await request.get(path);
     expect(res.status(), path).toBe(200);
     const got = res.headers();
+    const want: Record<string, string> = {};
     for (const r of rules) {
-      if (!path.startsWith(r.pattern.slice(0, -1))) continue;
-      for (const [name, value] of Object.entries(r.headers)) {
-        expect(got[name], `${path} (${pattern}): ${name}`).toBe(value);
-      }
+      if (path.startsWith(r.pattern.slice(0, -1))) Object.assign(want, r.headers);
+    }
+    for (const [name, value] of Object.entries(want)) {
+      expect(got[name], `${path} (${pattern}): ${name}`).toBe(value);
     }
   }
 
