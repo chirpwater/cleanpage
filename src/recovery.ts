@@ -3,6 +3,7 @@ import { S } from "./strings.js";
 export type RecoveryItem = { id: string; text: string; updatedAt: number };
 export type RecoveryOptions = {
   list: () => RecoveryItem[];
+  confirm: (restoreFocusTo: HTMLElement) => Promise<boolean>;
   recover: (id: string) => Promise<boolean>;
 };
 
@@ -35,9 +36,13 @@ export function initRecovery(
     (button ?? message).focus({ preventScroll: true });
   }
 
-  async function recover(id: string): Promise<void> {
+  async function recover(id: string, source: HTMLElement): Promise<void> {
     if (busy || !options) return;
     busy = true;
+    if (!(await options.confirm(source))) {
+      busy = false;
+      return;
+    }
     const controls = Array.from(form.querySelectorAll<HTMLInputElement | HTMLButtonElement>("input, button"));
     const disabled = controls.map((control) => control.disabled);
     for (const control of controls) control.disabled = true;
@@ -108,7 +113,7 @@ export function initRecovery(
       button.textContent = S.recoverDraft;
       button.dataset.draftId = item.id;
       button.setAttribute("aria-describedby", `${title.id} ${time.id}`);
-      button.addEventListener("click", () => { void recover(item.id); });
+      button.addEventListener("click", () => { void recover(item.id, button); });
       row.append(description, button);
       list.append(row);
     }

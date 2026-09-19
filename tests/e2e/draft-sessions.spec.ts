@@ -144,6 +144,30 @@ test("migration preserves the previous file-save checkpoint and removes the lega
   await expect(page.locator("#status")).toHaveAttribute("data-state", "dirty");
 });
 
+test("recovery asks before replacing unsaved writing, and keeping it leaves the page alone", async ({ page }) => {
+  await openPage(page);
+  await page.locator("#ta").fill(first);
+  await page.locator("#btnNew").click();
+  await page.locator("#dlgGo").click();
+  await expect(page.locator("#ta")).toHaveValue("");
+  await page.locator("#ta").fill(second);
+
+  await recovery(page);
+  const recover = page.getByRole("button", { name: "Recover", exact: true });
+  await recover.click();
+  await expect(page.locator("#dlg")).toBeVisible();
+  await page.locator("#dlgKeep").click();
+  await expect(page.locator("#settingsDlg")).toBeVisible();
+  await expect(page.locator("#ta")).toHaveValue(second);
+  await expect(recover).toBeFocused();
+
+  await recover.click();
+  await page.locator("#dlgGo").click();
+  await expect(page.locator("#settingsDlg")).toBeHidden();
+  await expect(page.locator("#ta")).toHaveValue(first);
+  await expect(page.locator("#ta")).toBeFocused();
+});
+
 test("recovery cannot replace unsaved writing when its background storage fails", async ({ page }) => {
   await openPage(page);
   await page.locator("#ta").fill(first);

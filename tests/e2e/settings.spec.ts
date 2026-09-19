@@ -157,6 +157,7 @@ test("recovering a listed draft keeps its text literal and does not apply pendin
   await expect(row.locator("img, script")).toHaveCount(0);
   await expect(row.locator("time")).toHaveAttribute("datetime", /^\d{4}-\d{2}-\d{2}T/);
   await row.getByRole("button", { name: "Recover", exact: true }).click();
+  await page.locator("#dlgGo").click();
   await expect(page.locator("#settingsDlg")).toBeHidden();
   await expect(page.locator("#ta")).toHaveValue(previous);
   await expect(page.locator("#ta")).toBeFocused();
@@ -200,6 +201,7 @@ test("pending recovery blocks Escape, Cancel, and Apply until the ownership lock
   await page.getByRole("radio", { name: "Round letters", exact: true }).check();
   await page.getByRole("radio", { name: "Large", exact: true }).check();
   await page.getByRole("button", { name: "Recover", exact: true }).click();
+  await page.locator("#dlgGo").click();
   await page.waitForFunction(() => (window as unknown as { recoveryWaiting: boolean }).recoveryWaiting);
   await expect(page.locator("#recoveryMessage")).toBeFocused();
   await expect(page.locator("#settingsRecovery")).toHaveAttribute("aria-busy", "true");

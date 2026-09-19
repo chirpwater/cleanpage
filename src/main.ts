@@ -6,7 +6,7 @@ import { clearCache, lineStarts, pagesOf } from "./paginate.js";
 import { PrintDoc } from "./printdoc.js";
 import * as files from "./files.js";
 import { S } from "./strings.js";
-import { confirmDiscard, promptDownloadName, renderBreaks, say, type Guard } from "./ui.js";
+import { ask, confirmDiscard, promptDownloadName, renderBreaks, say, type Guard } from "./ui.js";
 import { applySettings, DEFAULT_SETTINGS, initSettings } from "./settings.js";
 import { readSettings, writeSettings, type Draft } from "./storage.js";
 import { startDraftSession, type DraftSession } from "./drafts.js";
@@ -395,6 +395,16 @@ const settings = initSettings(initialSettings, (value) => {
   if (!settingsStored) tell(S.settingsStorageError);
 }, {
   list: () => draftSession?.listPrevious() ?? [],
+  confirm: async (restoreFocusTo) => {
+    persistDraft();
+    refreshDirty();
+    const needsConfirmation = draftStored && hasWriting() && isDirty();
+    if (!needsConfirmation) return true;
+    return ask(
+      { title: S.dlgRecoverTitle, body: S.dlgRecoverBody, keep: S.dlgKeep, go: S.dlgRecoverGo },
+      restoreFocusTo,
+    );
+  },
   recover: async (id) => {
     if (!appReady || fileBusy || !draftSession) return false;
     persistDraft();

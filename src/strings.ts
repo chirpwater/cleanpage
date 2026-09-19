@@ -71,6 +71,9 @@ export const S = {
   dlgOpenTitle: "Open another file?",
   dlgOpenBody: "This opens another file. Changes you have not saved will be gone.",
   dlgOpenGo: "Open the file",
+  dlgRecoverTitle: "Open this draft?",
+  dlgRecoverBody: "That draft comes back to this page. Your writing here is kept in Drafts.",
+  dlgRecoverGo: "Open the draft",
   dlgKeep: "Keep writing",
 
   // Problems, in plain words
