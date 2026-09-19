@@ -35,6 +35,47 @@ for (const width of [683, 320]) {
   });
 }
 
+test("the page says why the break lines are gone, instead of losing them silently", async ({
+  page,
+}) => {
+  await open(page);
+  await setText(page, CORPUS);
+  const rules = page.locator("#breaks .rule");
+  const note = page.locator("#breaknote");
+
+  expect(await rules.count(), "the paper's breaks are drawn at the paper's width").toBeGreaterThan(0);
+  await expect(note).toBeHidden();
+
+  await page.setViewportSize({ width: 683, height: 768 });
+  await settle(page);
+  await expect(rules, "a rule here would mark a place the paper does not break").toHaveCount(0);
+  await expect(note, "so the reader is told, not left guessing").toBeVisible();
+
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await settle(page);
+  await expect(note).toBeHidden();
+  expect(await rules.count()).toBeGreaterThan(0);
+});
+
+test("the announced page count names the paper once the screen stops matching it", async ({
+  page,
+}) => {
+  await open(page);
+  await setText(page, CORPUS);
+  const count = page.locator("#pagecount");
+  await expect(count).toHaveText(/^Now \d+ pages\.$/);
+
+  await page.setViewportSize({ width: 683, height: 768 });
+  await settle(page);
+  await expect(count, "same sheets, but the screen no longer shows them").toHaveText(
+    /^Now \d+ pages on paper\.$/,
+  );
+
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await settle(page);
+  await expect(count).toHaveText(/^Now \d+ pages\.$/);
+});
+
 test("the browser's font-size preference enlarges the writing and repaginates the paper", async ({
   page,
 }) => {
