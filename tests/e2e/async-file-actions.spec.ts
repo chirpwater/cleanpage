@@ -1,6 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
 import { open, setText } from "./helpers.js";
-import { DRAFT_RECORD_PREFIX } from "../../src/storage.js";
 
 test("a pending save keeps its document bound and later typing outside the exported snapshot", async ({ page }) => {
   await page.addInitScript(() => {
@@ -58,21 +57,10 @@ test("a pending save keeps its document bound and later typing outside the expor
 });
 
 for (const source of ["open", "drop"] as const) {
-  for (const { replace, recovery } of [
-    { replace: false, recovery: false },
-    { replace: true, recovery: false },
-    { replace: true, recovery: true },
-  ]) {
+  for (const replace of [false, true]) {
     const result = replace ? "replaced only after confirmation" : "kept on cancellation";
-    test(`${recovery ? "with" : "without"} recovery, writing added during a slow ${source} is ${result}`, async ({ page }) => {
-      await page.addInitScript((canRecover) => {
-        if (!canRecover) {
-          const write = Storage.prototype.setItem;
-          Storage.prototype.setItem = function (key, value) {
-            if (key.startsWith("cleanpage:draft:")) throw new DOMException("Full", "QuotaExceededError");
-            write.call(this, key, value);
-          };
-        }
+    test(`writing added during a slow ${source} is ${result}`, async ({ page }) => {
+      await page.addInitScript(() => {
         const state = window as unknown as { finishRead: () => void; readStarted: boolean };
         const read = File.prototype.arrayBuffer;
         File.prototype.arrayBuffer = async function () {
@@ -87,7 +75,7 @@ for (const source of ["open", "drop"] as const) {
           name: "teacher.txt",
           getFile: async () => new File(["Teacher instructions"], "teacher.txt", { type: "text/plain" }),
         }];
-      }, recovery);
+      });
       await open(page);
       if (source === "open") {
         await page.locator("#btnOpen").click();
@@ -102,7 +90,6 @@ for (const source of ["open", "drop"] as const) {
       }
       await page.waitForFunction(() => (window as unknown as { readStarted: boolean }).readStarted);
       await page.locator("#ta").fill("New words written while the file loads.");
-      const previousId = await page.evaluate(() => sessionStorage.getItem("cleanpage:document:v2"));
       await page.evaluate(() => (window as unknown as { finishRead: () => void }).finishRead());
       await expect(page.locator("#dlg")).toBeVisible();
       await page.locator(replace ? "#dlgGo" : "#dlgKeep").click();
@@ -113,10 +100,6 @@ for (const source of ["open", "drop"] as const) {
       await expect(page.locator("#btnOpen")).toBeEnabled();
       await expect(page.locator("#ta")).toBeFocused();
       if (replace) await expect(page.locator("#status")).toContainText("teacher.txt");
-      if (recovery) {
-        expect(await page.evaluate((id) => JSON.parse(localStorage.getItem(`cleanpage:draft:v2:${id}`)!).text, previousId))
-          .toBe("New words written while the file loads.");
-      }
     });
   }
 }
@@ -156,16 +139,6 @@ async function startIncomingFile(page: Page, source: "open" | "drop"): Promise<v
   }
 }
 
-async function blockRecoveryWrites(page: Page): Promise<void> {
-  await page.evaluate((prefix) => {
-    const write = Storage.prototype.setItem;
-    Storage.prototype.setItem = function (key, value) {
-      if (key.startsWith(prefix)) throw new DOMException("Full", "QuotaExceededError");
-      write.call(this, key, value);
-    };
-  }, DRAFT_RECORD_PREFIX);
-}
-
 for (const source of ["open", "drop"] as const) {
   test(`cancelling guarded ${source} keeps writing and does not start the slow read`, async ({ page }) => {
     await delayIncomingFile(page);
@@ -189,7 +162,6 @@ for (const source of ["open", "drop"] as const) {
   test(`an explicit discard approval before a slow ${source} is not asked again for the same writing`, async ({ page }) => {
     await delayIncomingFile(page);
     await open(page);
-    await blockRecoveryWrites(page);
     const original = "I approve replacing exactly these words.";
     await page.locator("#ta").fill(original);
     await page.evaluate(() => {

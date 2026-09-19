@@ -2,6 +2,8 @@
 
 A web page that behaves like a sheet of paper in a typewriter. Open it, type, print (or save to a local file).
 
+Writing lasts only while the page is open. Closing or reloading the tab clears it; save or download a file to keep your work. Only font, size, and color preferences persist.
+
 ## Principles
 
 - Calm and without distractions

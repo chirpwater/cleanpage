@@ -6,10 +6,9 @@ import { clearCache, lineStarts, pagesOf } from "./paginate.js";
 import { PrintDoc } from "./printdoc.js";
 import * as files from "./files.js";
 import { S } from "./strings.js";
-import { ask, confirmDiscard, promptDownloadName, renderBreaks, say, type Guard } from "./ui.js";
+import { confirmDiscard, promptDownloadName, renderBreaks, say, type Guard } from "./ui.js";
 import { applySettings, DEFAULT_SETTINGS, initSettings } from "./settings.js";
-import { readSettings, writeSettings, type Draft } from "./storage.js";
-import { startDraftSession, type DraftSession } from "./drafts.js";
+import { readSettings, writeSettings } from "./storage.js";
 import { initToolbar } from "./toolbar.js";
 import { initHistory } from "./history.js";
 
@@ -105,16 +104,8 @@ sheet.addEventListener("pointerdown", (e) => {
 
 let lastSavedText = "";
 let closeWarningArmed = false;
-let draftStored = false;
 let lastStatus = "";
-let draftSession: DraftSession | null = null;
 let appReady = false;
-
-const currentDraft = (): Draft => ({ text: ta.value, lastSavedText, fileName: files.currentFileName() });
-
-function persistDraft(): void {
-  draftStored = draftSession?.persist(currentDraft()) ?? false;
-}
 
 const isDirty = (): boolean => ta.value !== lastSavedText;
 const hasWriting = (): boolean => ta.value.trim().length > 0;
@@ -134,9 +125,8 @@ function refreshDirty(): void {
   }
 
   const name = files.currentFileName();
-  const warnAboutStorage = !draftStored && warnOnClose;
   const empty = !hasWriting() && !name;
-  const statusKey = JSON.stringify([dirty, empty, name, warnOnClose, warnAboutStorage]);
+  const statusKey = JSON.stringify([dirty, empty, name]);
   if (statusKey === lastStatus) return;
   lastStatus = statusKey;
   statusGlyph.textContent = dirty ? "" : "✓";
@@ -144,12 +134,9 @@ function refreshDirty(): void {
   statusName.textContent = !dirty && name ? " — " + name : "";
   status.dataset.empty = String(empty);
   status.dataset.state = dirty ? "dirty" : "clean";
-  status.dataset.storage = draftStored ? "saved" : "unavailable";
-  $("storageWarning").hidden = !warnAboutStorage;
 }
 
 ta.addEventListener("input", () => {
-  persistDraft();
   refreshDirty();
   requestAnimationFrame(layout);
 });
@@ -161,7 +148,6 @@ type ReplaceApproval = { discardText: string | null };
 
 async function guard(kind: Guard): Promise<ReplaceApproval | null> {
   if (!appReady || askingSomething()) return null;
-  persistDraft();
   refreshDirty();
   const needsConfirmation = hasWriting() && (kind === "new" || isDirty());
   if (!needsConfirmation) return { discardText: null };
@@ -173,15 +159,13 @@ sayOk.textContent = S.errOk;
 
 const tell = (message: string): void => say(sayDlg, sayBody, sayOk, message, ta);
 
-function loadDocument(text: string, savedText = text): void {
+function loadDocument(text: string): void {
   ta.value = text;
-  lastSavedText = savedText;
+  lastSavedText = text;
   history.reset();
-  persistDraft();
   layout();
   ta.setSelectionRange(0, 0);
   refreshDirty();
-  settings.refreshRecovery();
   ta.focus();
   window.scrollTo(0, 0);
 }
@@ -218,7 +202,6 @@ btnNew.addEventListener("click", () => {
     if (!beginFileAction()) return;
     const unlock = lockDocument();
     try {
-      await draftSession!.newDocument({ text: "", lastSavedText: "", fileName: null });
       files.forgetFile();
       loadDocument("");
     } catch {
@@ -258,12 +241,11 @@ async function acceptOpened(opened: files.OpenedFile, approvedDiscard: string | 
     tell(S.errNotText);
     return;
   }
-  persistDraft();
+
   refreshDirty();
   if (isDirty() && hasWriting() && ta.value !== approvedDiscard && !(await guard("open"))) return;
   const unlock = lockDocument();
   try {
-    await draftSession!.newDocument({ text: opened.text, lastSavedText: opened.text, fileName: opened.name });
     files.adopt(opened);
     loadDocument(opened.text);
   } finally {
@@ -290,7 +272,6 @@ async function doSave(): Promise<void> {
     ta.focus();
     if (name === null) return;
     lastSavedText = text;
-    persistDraft();
     refreshDirty();
   } catch {
     tell(S.errSave);
@@ -393,37 +374,6 @@ const settings = initSettings(initialSettings, (value) => {
 }, () => {
   refocusInPlace(settingsScroll.y, settingsScroll.h);
   if (!settingsStored) tell(S.settingsStorageError);
-}, {
-  list: () => draftSession?.listPrevious() ?? [],
-  confirm: async (restoreFocusTo) => {
-    persistDraft();
-    refreshDirty();
-    const needsConfirmation = draftStored && hasWriting() && isDirty();
-    if (!needsConfirmation) return true;
-    return ask(
-      { title: S.dlgRecoverTitle, body: S.dlgRecoverBody, keep: S.dlgKeep, go: S.dlgRecoverGo },
-      restoreFocusTo,
-    );
-  },
-  recover: async (id) => {
-    if (!appReady || fileBusy || !draftSession) return false;
-    persistDraft();
-    refreshDirty();
-    if (!draftStored && isDirty()) throw new Error(S.recoverySaveFirst);
-    fileBusy = true;
-    const unlock = lockDocument();
-    try {
-      const draft = await draftSession.recover(id);
-      if (!draft) return false;
-      files.restoreFileName(draft.fileName);
-      loadDocument(draft.text, draft.lastSavedText);
-      settingsScroll = { y: 0, h: document.documentElement.scrollHeight };
-      return true;
-    } finally {
-      unlock();
-      endFileAction();
-    }
-  },
 });
 btnSettings.addEventListener("click", () => {
   if (!appReady || fileBusy || askingSomething()) return;
@@ -434,32 +384,9 @@ btnSettings.addEventListener("click", () => {
 
 const history = initHistory(ta, $<HTMLButtonElement>("btnUndo"), $<HTMLButtonElement>("btnRedo"));
 
-addEventListener("storage", () => {
-  if (settings.isOpen()) settings.refreshRecovery();
-});
-addEventListener("pageshow", (event) => {
-  if (!event.persisted || !draftSession) return;
-  appReady = false;
-  ta.readOnly = true;
-  void draftSession.ready().then(() => {
-    persistDraft();
-    refreshDirty();
-    settings.refreshRecovery();
-  }).finally(() => {
-    appReady = true;
-    ta.readOnly = documentChanges > 0;
-  });
-});
-
 async function boot(): Promise<void> {
-  draftSession = await startDraftSession();
-  const recovered = draftSession.initial;
-  ta.value = recovered.text;
-  lastSavedText = recovered.lastSavedText;
-  files.restoreFileName(recovered.fileName);
+  ta.value = "";
   history.reset();
-  persistDraft();
-  settings.refreshRecovery();
   layout();
   refreshDirty();
   try {

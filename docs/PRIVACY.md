@@ -2,7 +2,7 @@
 
 Clean Page is published by ChirpWater, LLC ("ChirpWater", "we", "us"). This policy explains what we do with your information. The short answer is that we never receive any of it.
 
-Effective September 18, 2026.
+Effective September 19, 2026.
 
 ## We do not collect your information
 
@@ -14,7 +14,7 @@ We do not use analytics, tracking, advertising identifiers, or measurement of an
 
 ## Everything stays on your own device
 
-Everything you write in Clean Page is processed entirely on the device you are using. Your writing is kept on that device so that it is still there when you come back, and it is kept nowhere else. It is never sent to us, and it is never sent to anyone else.
+Everything you write in Clean Page is processed entirely on the device you are using. Writing is not saved automatically. Closing or reloading the tab clears the page; save or download your writing to keep a copy. Only your font, size, and color choices are saved in browser storage. Your writing is never sent to us, and it is never sent to anyone else.
 
 ## We do not monetize your information
 

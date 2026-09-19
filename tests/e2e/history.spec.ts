@@ -28,14 +28,6 @@ async function stepUntil(page: Page, button: "#btnUndo" | "#btnRedo", value: str
   await expect(ta).toHaveValue(value);
 }
 
-async function savedText(page: Page): Promise<string | null> {
-  return page.evaluate(() => {
-    const id = sessionStorage.getItem("cleanpage:document:v2");
-    const raw = id ? localStorage.getItem(`cleanpage:draft:v2:${id}`) : null;
-    return raw ? (JSON.parse(raw) as { text: string }).text : null;
-  });
-}
-
 test.beforeEach(async ({ page }) => {
   await page.goto("./");
   await ready(page);
@@ -118,7 +110,7 @@ test("replacement, deletion back to an empty page, and fresh edits remain undoab
   await expect(page.locator("#btnRedo")).toHaveAttribute("aria-disabled", "true");
 });
 
-test("Undo persists the resulting draft and does not rewind applied settings", async ({ page }) => {
+test("Undo does not rewind applied settings and reload starts fresh history", async ({ page }) => {
   const ta = page.locator("#ta");
   await ta.focus();
   await page.keyboard.type("Words to undo");
@@ -128,7 +120,6 @@ test("Undo persists the resulting draft and does not rewind applied settings", a
   await undoToBoundary(page);
   await expect(ta).toHaveValue("");
   await expect(page.locator("html")).toHaveAttribute("data-size", "large");
-  expect(await savedText(page)).toBe("");
   await page.reload();
   await ready(page);
   await expect(ta).toHaveValue("");
@@ -149,7 +140,6 @@ for (const action of ["new", "open"] as const) {
     const ta = page.locator("#ta");
     await ta.focus();
     await page.keyboard.type("OLD DOCUMENT");
-    const previousId = await page.evaluate(() => sessionStorage.getItem("cleanpage:document:v2"));
     await page.locator(action === "new" ? "#btnNew" : "#btnOpen").click();
     await expect(page.locator("#dlg")).toBeVisible();
     await page.locator("#dlgGo").click();
@@ -171,42 +161,8 @@ for (const action of ["new", "open"] as const) {
     await expect(page.locator("#btnRedo")).toHaveAttribute("aria-disabled", "true");
     await page.keyboard.press("Control+Shift+z");
     await expect(ta).toHaveValue(baseline + " added");
-    expect(await page.evaluate((id) => JSON.parse(localStorage.getItem(`cleanpage:draft:v2:${id}`)!).text, previousId))
-      .toBe("OLD DOCUMENT");
   });
 }
-
-test("recovering an earlier draft starts fresh history without reviving the replaced document", async ({ page }) => {
-  const ta = page.locator("#ta");
-  await ta.focus();
-  await page.keyboard.insertText("The earlier story");
-  await page.locator("#btnNew").click();
-  await page.locator("#dlgGo").click();
-  await expect(ta).toHaveValue("");
-  await page.keyboard.insertText("The current story");
-  await page.locator("#btnSettings").click();
-  await page.locator("#recoveryList .recovery-item")
-    .filter({ hasText: "The earlier story" })
-    .getByRole("button", { name: "Recover", exact: true }).click();
-  await page.locator("#dlgGo").click();
-  await expect(page.locator("#settingsDlg")).toBeHidden();
-  await expect(ta).toHaveValue("The earlier story");
-  await expect(ta).toBeEditable();
-  await expect(ta).toBeFocused();
-  await expect(page.locator("#btnUndo")).toHaveAttribute("aria-disabled", "true");
-  await expect(page.locator("#btnRedo")).toHaveAttribute("aria-disabled", "true");
-  await page.keyboard.press("Control+z");
-  await page.keyboard.press("Control+Shift+z");
-  await expect(ta).toHaveValue("The earlier story");
-  await page.keyboard.press("Control+End");
-  await page.keyboard.type(" continues");
-  await expect(ta).toHaveValue("The earlier story continues");
-  const steps = await undoToBoundary(page);
-  await expect(ta).toHaveValue("The earlier story");
-  await redoSteps(page, steps);
-  await expect(ta).toHaveValue("The earlier story continues");
-  expect(await savedText(page)).toBe("The earlier story continues");
-});
 
 test("Tab and multi-line native insertion use the same history and layout path", async ({ page }) => {
   const ta = page.locator("#ta");
@@ -219,8 +175,6 @@ test("Tab and multi-line native insertion use the same history and layout path",
   await expect(ta).toHaveValue("");
   await redoSteps(page, steps);
   await expect(ta).toHaveValue("First\tsecond\nThird line 🌱");
-  expect(await savedText(page))
-    .toBe("First\tsecond\nThird line 🌱");
 });
 
 test("native history beforeinput actions are cancelled at the document boundary", async ({ page }) => {
@@ -251,28 +205,19 @@ test("a new document can undo deletion, redo it, retype, then undo beyond the sa
   await ta.focus();
   await page.keyboard.type("The replaced story");
   await page.evaluate(() => {
-    const state = window as unknown as { resetInputValues: string[]; resetStoredValues: string[] };
+    const state = window as unknown as { resetInputValues: string[] };
     state.resetInputValues = [];
-    state.resetStoredValues = [];
     const editor = document.getElementById("ta") as HTMLTextAreaElement;
     editor.addEventListener("input", () => state.resetInputValues.push(editor.value));
-    const write = Storage.prototype.setItem;
-    Storage.prototype.setItem = function (key, value) {
-      if (key.startsWith("cleanpage:draft:v2:")) {
-        state.resetStoredValues.push((JSON.parse(value) as { text: string }).text);
-      }
-      write.call(this, key, value);
-    };
   });
   await page.locator("#btnNew").click();
   await page.locator("#dlgGo").click();
   await expect(ta).toHaveValue("");
   const reset = await page.evaluate(() => {
-    const state = window as unknown as { resetInputValues: string[]; resetStoredValues: string[] };
-    return { inputs: state.resetInputValues, stored: state.resetStoredValues };
+    const state = window as unknown as { resetInputValues: string[] };
+    return { inputs: state.resetInputValues };
   });
   expect(reset.inputs, "reset maintenance must not be observed as writing").toEqual([]);
-  expect(reset.stored.every((value) => value === "" || value === "The replaced story"), "no temporary reset text reaches persistence").toBe(true);
   await page.keyboard.insertText("ABC");
   await page.keyboard.press("Control+a");
   await page.keyboard.press("Backspace");
@@ -436,6 +381,6 @@ for (const failure of ["unsupported", "no-progress", "throws", "never-finishes"]
     await page.keyboard.insertText("New writing");
     expect(await page.evaluate(() => (window as unknown as { resetObservedInputs: string[] }).resetObservedInputs))
       .toEqual(["New writing"]);
-    expect(await savedText(page)).toBe("New writing");
+    await expect(ta).toHaveValue("New writing");
   });
 }

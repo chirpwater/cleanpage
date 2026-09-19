@@ -5,8 +5,9 @@ Clean Page can be operated entirely from the keyboard: Alt+F reaches the toolbar
 Settings let you change how the page looks and reads:
 
 - A dyslexia-friendly typeface, alongside the default serif
-- Three text sizes, from small to large
+- Regular and large text sizes
+- Light or dark on-screen colors
 
-Clean Page respects your operating system's dark mode and its high-contrast display mode, follows the text size set in your browser's own settings, and does not block or override your browser's zoom. Printing stays black on white whichever colours the screen is showing. When zooming narrows the window below the width of a sheet, the writing reflows to fit rather than scrolling sideways. The page-break lines are hidden while it does, because printing is still measured at the paper's own width.
+Clean Page respects your operating system's high-contrast display mode. It follows the text size set in your browser's own settings and does not block or override your browser's zoom. Printing stays black on white whichever colors the screen is showing. When zooming narrows the window below the width of a sheet, the writing reflows to fit rather than scrolling sideways. The page-break lines are hidden while it does, because printing is still measured at the paper's own width.
 
 This is a small, hand-built application. It has not been through a formal accessibility audit, and there are likely rough edges we have not found yet.

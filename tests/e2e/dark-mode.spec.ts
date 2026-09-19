@@ -16,7 +16,7 @@ const surface = (page: import("@playwright/test").Page) =>
     };
   });
 
-test("the operating system's dark mode darkens the page but never the print", async ({ page }) => {
+test("light and dark on-screen colors are selectable, and print stays light", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "light" });
   await open(page);
   await setText(page, CORPUS);
@@ -26,6 +26,12 @@ test("the operating system's dark mode darkens the page but never the print", as
   );
 
   await page.emulateMedia({ colorScheme: "dark" });
+  expect((await surface(page)).paper, "the light choice ignores the system theme").toBe(light.paper);
+
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await expect(page.getByRole("radio", { name: "Light", exact: true })).toBeChecked();
+  await page.getByRole("radio", { name: "Dark", exact: true }).check();
+  await page.getByRole("button", { name: "Apply", exact: true }).click();
   const dark = await surface(page);
   expect(dark.paper, "dark: the paper is repainted").not.toBe(light.paper);
   expect(dark.bar, "dark: the toolbar is repainted").not.toBe(light.bar);
@@ -38,6 +44,9 @@ test("the operating system's dark mode darkens the page but never the print", as
   );
   expect(contrast(dark.focus, dark.paper), "dark: the focus ring stays visible").toBeGreaterThan(3);
   expect(contrast(dark.focus, dark.bar), "dark: on the toolbar too").toBeGreaterThan(3);
+
+  await page.emulateMedia({ colorScheme: "light" });
+  expect((await surface(page)).paper).toBe(dark.paper);
 
   await page.emulateMedia({ media: "print", colorScheme: "dark" });
   const printed = await page.evaluate(() => {

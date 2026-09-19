@@ -62,20 +62,10 @@ export async function ready(page: Page): Promise<void> {
   });
 }
 
-export async function storedDraft(page: Page): Promise<{
-  id: string; text: string; lastSavedText: string; fileName: string | null; updatedAt: number;
-} | null> {
-  return page.evaluate(() => {
-    const id = sessionStorage.getItem("cleanpage:document:v2");
-    const raw = id && localStorage.getItem("cleanpage:draft:v2:" + id);
-    return raw ? JSON.parse(raw) : null;
-  });
-}
-
 export async function open(page: Page): Promise<void> {
   await page.goto("./");
   await ready(page);
-  await chooseSize(page, "small");
+  await chooseSize(page, "regular");
 }
 
 export async function setText(page: Page, text: string): Promise<void> {
@@ -99,7 +89,7 @@ export async function chooseFont(page: Page, font: "serif" | "dys"): Promise<voi
   await settle(page);
 }
 
-export async function chooseSize(page: Page, size: "small" | "medium" | "large"): Promise<void> {
+export async function chooseSize(page: Page, size: "regular" | "large"): Promise<void> {
   await page.locator("#btnSettings").click();
   await page.locator(`input[name="size"][value="${size}"]`).check();
   await page.locator("#settingsApply").click();

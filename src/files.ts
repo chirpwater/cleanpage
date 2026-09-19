@@ -35,11 +35,6 @@ export const currentFileName = (): string | null => fileName;
 
 export const canSaveToFile = (): boolean => typeof window.showSaveFilePicker === "function";
 
-export function restoreFileName(name: string | null): void {
-  handle = null;
-  fileName = name;
-}
-
 export function downloadName(name: string): string {
   const clean = name.replace(/[\\/:*?"<>|\u0000-\u001f\u007f]/g, "").trim().slice(0, 180).trim();
   const base = clean.replace(/\.+$/, "") || "My writing";

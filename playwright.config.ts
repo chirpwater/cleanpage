@@ -31,7 +31,7 @@ export default defineConfig({
     {
       name: "firefox",
       use: { browserName: "firefox" },
-      testMatch: /(wrap-equivalence|history|draft-sessions)\.spec\.ts/,
+      testMatch: /(wrap-equivalence|history|persistence)\.spec\.ts/,
     },
     {
       name: "firefox-print",
@@ -55,7 +55,7 @@ export default defineConfig({
     {
       name: "webkit",
       use: { browserName: "webkit" },
-      testMatch: /(wrap-equivalence|history|draft-sessions)\.spec\.ts/,
+      testMatch: /(wrap-equivalence|history|persistence)\.spec\.ts/,
     },
   ],
   webServer: [

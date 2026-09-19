@@ -13,16 +13,6 @@ test.beforeEach(async ({ page }) => {
 
 const STORY = "My Tide Pool Story\n\nWe saw a crab. It was orange.\n\tIt hid under a rock.\n";
 
-async function blockDraftStorage(page: import("@playwright/test").Page): Promise<void> {
-  await page.addInitScript(() => {
-    const write = Storage.prototype.setItem;
-    Storage.prototype.setItem = function (key, value) {
-      if (key.startsWith("cleanpage:draft:")) throw new DOMException("Full", "QuotaExceededError");
-      write.call(this, key, value);
-    };
-  });
-}
-
 async function downloadWriting(page: import("@playwright/test").Page) {
   await page.locator("#btnSave").click();
   await expect(page.locator("#downloadDlg")).toBeVisible();
@@ -54,7 +44,7 @@ test("Download confirms a .txt name from the first line and writes exact bytes",
   await expect(page.locator("#ta"), "the cursor comes straight back").toBeFocused();
 });
 
-test("after a download, edits save locally and undo restores the exported snapshot", async ({ page }) => {
+test("after a download, edits mark writing unsaved and undo restores the exported snapshot", async ({ page }) => {
   await open(page);
   await setText(page, STORY);
   await downloadWriting(page);
@@ -116,8 +106,7 @@ test("Download waits for a chosen filename and remembers the edited name", async
 });
 
 for (const cancel of ["button", "escape"] as const) {
-  test(`without recovery, cancelling the filename dialog by ${cancel} preserves writing and export state`, async ({ page }) => {
-    await blockDraftStorage(page);
+  test(`cancelling the filename dialog by ${cancel} preserves writing and export state`, async ({ page }) => {
     await open(page);
     await setText(page, STORY);
     const downloads: string[] = [];
@@ -222,7 +211,7 @@ test("a selected file can finish reading after the picker cancellation grace per
   await expect(page.locator("#status")).toHaveAttribute("data-state", "clean");
 });
 
-test("Open asks before replacing unsaved writing even when recovery is available", async ({ page }) => {
+test("Open asks before replacing unsaved writing", async ({ page }) => {
   await open(page);
   await setText(page, "words in progress");
 
@@ -252,7 +241,6 @@ test("Open asks before replacing unsaved writing even when recovery is available
 test("a file that is not plain writing is refused, and the document is untouched", async ({
   page,
 }) => {
-  await blockDraftStorage(page);
   await open(page);
   await setText(page, "the words already on the page");
 

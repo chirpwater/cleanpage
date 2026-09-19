@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-font="serif" data-size="medium">
+<html lang="en" data-font="serif" data-size="regular" data-theme="light">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -62,7 +62,6 @@
 
       <p id="tabhint" class="vh">To reach the buttons, press Alt and F. Escape returns to writing.</p>
       <p id="pagecount" class="vh" role="status"></p>
-      <p id="storageWarning" role="status" hidden>Could not save on this device. Download your writing to keep it.</p>
     </main>
 
     <div id="mcage"><pre id="mirror" class="tp-text notranslate" translate="no" aria-hidden="true"></pre></div>
@@ -79,15 +78,13 @@
         </fieldset>
         <fieldset>
           <legend>Font size</legend>
-          <label class="setting-choice"><input type="radio" name="size" value="small" /><span>Small</span><span class="setting-sample size-preview" data-preview-font="serif" data-preview-size="small" aria-hidden="true">Aa</span></label>
-          <label class="setting-choice"><input type="radio" name="size" value="medium" checked /><span>Medium</span><span class="setting-sample size-preview" data-preview-font="serif" data-preview-size="medium" aria-hidden="true">Aa</span></label>
+          <label class="setting-choice"><input type="radio" name="size" value="regular" checked /><span>Regular</span><span class="setting-sample size-preview" data-preview-font="serif" data-preview-size="regular" aria-hidden="true">Aa</span></label>
           <label class="setting-choice"><input type="radio" name="size" value="large" /><span>Large</span><span class="setting-sample size-preview" data-preview-font="serif" data-preview-size="large" aria-hidden="true">Aa</span></label>
         </fieldset>
-        <fieldset id="settingsRecovery">
-          <legend>Drafts</legend>
-          <p id="recoveryEmpty">No previous drafts.</p>
-          <ul id="recoveryList" aria-label="Previous drafts"></ul>
-          <p id="recoveryMessage" class="recovery-message" role="status" tabindex="-1" hidden></p>
+        <fieldset>
+          <legend>On-Screen Colors</legend>
+          <label class="setting-choice"><input type="radio" name="theme" value="light" checked /><span>Light</span></label>
+          <label class="setting-choice"><input type="radio" name="theme" value="dark" /><span>Dark</span></label>
         </fieldset>
         <section id="settingsAbout" aria-labelledby="aboutTitle">
           <h3 id="aboutTitle">About</h3>

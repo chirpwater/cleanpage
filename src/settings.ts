@@ -1,31 +1,31 @@
 import { version } from "../package.json";
 import { S } from "./strings.js";
 import { ask } from "./ui.js";
-import { initRecovery, type RecoveryOptions } from "./recovery.js";
-export type { RecoveryItem, RecoveryOptions } from "./recovery.js";
 
 export type Settings = {
   font: "serif" | "dys";
-  size: "small" | "medium" | "large";
+  size: "regular" | "large";
+  theme: "light" | "dark";
 };
 
 export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
   font: "serif",
-  size: "medium",
+  size: "regular",
+  theme: "light",
 });
 
 export function applySettings(settings: Settings): void {
   const root = document.documentElement;
   root.dataset.font = settings.font;
   root.dataset.size = settings.size;
+  root.dataset.theme = settings.theme;
 }
 
 export function initSettings(
   initial: Settings,
   onApply: (settings: Settings) => void,
   onClose?: () => void,
-  recoveryOptions?: RecoveryOptions,
-): { open: () => void; isOpen: () => boolean; refreshRecovery: () => void } {
+): { open: () => void } {
   const dialog = document.getElementById("settingsDlg") as HTMLDialogElement;
   const form = document.getElementById("settingsForm") as HTMLFormElement;
   const resetButton = document.getElementById("settingsReset") as HTMLButtonElement;
@@ -33,7 +33,6 @@ export function initSettings(
     import.meta.env.PROD ? version : S.devVersion,
   );
   let committed = { ...initial };
-  const recovery = initRecovery(form, recoveryOptions, () => dialog.close());
 
   function updatePreviews(): void {
     const font = new FormData(form).get("font") === "dys" ? "dys" : "serif";
@@ -42,7 +41,7 @@ export function initSettings(
     }
   }
 
-  function setDraft(settings: Settings): void {
+  function setChoices(settings: Settings): void {
     for (const input of form.querySelectorAll<HTMLInputElement>('input[type="radio"]')) {
       input.checked = settings[input.name as keyof Settings] === input.value;
     }
@@ -52,20 +51,19 @@ export function initSettings(
   form.addEventListener("change", updatePreviews);
   form.addEventListener("submit", (event) => {
     event.preventDefault();
-    if (recovery.isBusy()) return;
     const values = new FormData(form);
     committed = {
       font: values.get("font") === "dys" ? "dys" : "serif",
-      size: values.get("size") === "small" ? "small" : values.get("size") === "large" ? "large" : "medium",
+      size: values.get("size") === "large" ? "large" : "regular",
+      theme: values.get("theme") === "dark" ? "dark" : "light",
     };
     onApply({ ...committed });
     dialog.close();
   });
   document.getElementById("settingsCancel")!.addEventListener("click", () => {
-    if (!recovery.isBusy()) dialog.close();
+    dialog.close();
   });
   resetButton.addEventListener("click", () => {
-    if (recovery.isBusy()) return;
     void ask(
       { title: S.resetTitle, body: "", keep: S.cancel, go: S.resetSettings },
       resetButton,
@@ -76,15 +74,8 @@ export function initSettings(
       dialog.close();
     });
   });
-  dialog.addEventListener("cancel", (event) => {
-    if (recovery.isBusy()) event.preventDefault();
-  });
   dialog.addEventListener("keydown", (event) => {
     if (event.key !== "Tab" || event.isComposing) return;
-    if (recovery.isBusy()) {
-      event.preventDefault();
-      return;
-    }
     const stops = Array.from(form.querySelectorAll<HTMLInputElement | HTMLButtonElement>('input[type="radio"]:checked, button'))
       .filter((control) => !control.disabled && control.getClientRects().length > 0);
     const first = stops[0];
@@ -102,11 +93,8 @@ export function initSettings(
   return {
     open: () => {
       if (dialog.open) return;
-      setDraft(committed);
-      recovery.reset();
+      setChoices(committed);
       dialog.showModal();
     },
-    isOpen: () => dialog.open,
-    refreshRecovery: recovery.refresh,
   };
 }

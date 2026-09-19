@@ -1,7 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { CORPUS, ready, setText, settle } from "./helpers.js";
-import { DRAFT_RECORD_PREFIX, SETTINGS_KEY } from "../../src/storage.js";
-import { DRAFT_SESSION_KEY } from "../../src/drafts.js";
+import { SETTINGS_KEY } from "../../src/storage.js";
 
 const SECRET = "Zoltan-the-marmot-ate-my-homework";
 
@@ -44,7 +43,7 @@ test("nothing goes over the wire once the page is open", async ({ page, context 
   expect(seen, "zero requests to any origin after load").toEqual([]);
 });
 
-test("only the explicit local draft stores writing; caches contain only application files", async ({ page }) => {
+test("only settings persist; writing stays out of browser storage and caches", async ({ page }) => {
   await page.goto("./");
   await ready(page);
   await swSettled(page);
@@ -74,8 +73,6 @@ test("only the explicit local draft stores writing; caches contain only applicat
     dump["idb"] = (await (indexedDB as IDBFactory & { databases?: () => Promise<{ name?: string }[]> })
       .databases?.())?.map((d) => d.name ?? "?") ?? [];
 
-    // The offline cache holds only application assets. Drafts must not leak
-    // into responses that could be served for another page or application file.
     const names = "caches" in self ? await caches.keys() : [];
     const cached: string[] = [];
     let leak = false;
@@ -95,15 +92,10 @@ test("only the explicit local draft stores writing; caches contain only applicat
 
   const local = storage["localStorage"] as Record<string, string>;
   const session = storage["sessionStorage"] as Record<string, string>;
-  expect(Object.keys(session)).toEqual([DRAFT_SESSION_KEY]);
-  const id = session[DRAFT_SESSION_KEY]!;
-  expect(Object.keys(local).sort()).toEqual([DRAFT_RECORD_PREFIX + id, SETTINGS_KEY].sort());
-  expect(JSON.parse(local[DRAFT_RECORD_PREFIX + id]!)).toEqual({
-    id, updatedAt: expect.any(Number),
-    text: CORPUS + "\n" + SECRET + "\n", lastSavedText: "", fileName: null,
-  });
-  expect(JSON.parse(local[SETTINGS_KEY]!)).toEqual({ font: "dys", size: "large" });
-  expect(JSON.stringify(session), "session storage contains only an ID, never writing").not.toContain(SECRET);
+  expect(session).toEqual({});
+  expect(Object.keys(local)).toEqual([SETTINGS_KEY]);
+  expect(JSON.parse(local[SETTINGS_KEY]!)).toEqual({ font: "dys", size: "large", theme: "light" });
+  expect(JSON.stringify(storage), "browser storage never contains writing").not.toContain(SECRET);
   expect(storage["cookie"]).toBe("");
   expect(storage["idb"]).toEqual([]);
 

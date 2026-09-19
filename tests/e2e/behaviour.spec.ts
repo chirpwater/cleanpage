@@ -4,16 +4,6 @@ import { CORPUS, chooseFont, geometry, open, setText, settle } from "./helpers.j
 const chip = (page: import("@playwright/test").Page) =>
   page.locator("#status").innerText();
 
-async function blockDraftStorage(page: import("@playwright/test").Page): Promise<void> {
-  await page.addInitScript(() => {
-    const write = Storage.prototype.setItem;
-    Storage.prototype.setItem = function (key, value) {
-      if (key.startsWith("cleanpage:draft:")) throw new DOMException("The device storage is full", "QuotaExceededError");
-      write.call(this, key, value);
-    };
-  });
-}
-
 test("the saved indicator stays quiet while editing and follows edit and undo", async ({
   page,
 }) => {
@@ -136,7 +126,7 @@ test("pasting rich HTML puts plain text in the document", async ({ page }) => {
   expect(v.replace(/\s+/gu, " ").trim()).toBe("Big bold it");
 });
 
-test("closing the tab warns about unsaved writing even when recovery is available", async ({ page }) => {
+test("closing the tab warns about unsaved writing", async ({ page }) => {
   await open(page);
   await page.locator("#ta").click();
   await page.keyboard.type("words worth keeping");
@@ -157,16 +147,14 @@ for (const lead of [
   { name: "a space", key: "Space" },
   { name: "a new line", key: "Enter" },
 ]) {
-  test(`when recovery is unavailable, writing beginning with ${lead.name} warns on close`, async ({
+  test(`writing beginning with ${lead.name} warns on close`, async ({
     page,
   }) => {
-    await blockDraftStorage(page);
     await open(page);
     await page.locator("#ta").click();
     await page.keyboard.press(lead.key);
     await page.keyboard.type("Once upon a time there was a crab");
     await settle(page);
-    await expect(page.locator("#storageWarning")).toBeVisible();
     await expect(page.locator("#status")).toHaveAttribute("data-state", "dirty");
 
     const dialogs: string[] = [];
@@ -187,10 +175,9 @@ for (const lead of [
  * file, clear it, write your own. The Delete flips `dirty` while the field is
  * empty, and the guard never armed for the rest of the lesson.
  */
-test("with failed recovery, replacing opened text still warns before the tab closes", async ({
+test("replacing opened text still warns before the tab closes", async ({
   page,
 }) => {
-  await blockDraftStorage(page);
   await page.addInitScript(() => {
     const name = "starter.txt";
     const text = "Write about your favourite animal.\n";
@@ -214,7 +201,6 @@ test("with failed recovery, replacing opened text still warns before the tab clo
   await page.keyboard.press("Delete");
   await page.keyboard.type("My very own brand new story about a sea otter.");
   await settle(page);
-  await expect(page.locator("#storageWarning")).toBeVisible();
   await expect(page.locator("#status")).toHaveAttribute("data-state", "dirty");
 
   const dialogs: string[] = [];
@@ -229,7 +215,6 @@ test("with failed recovery, replacing opened text still warns before the tab clo
 
 /** And the detaching half: back down to whitespace, the warning goes away. */
 test("writing taken back down to whitespace stops asking again", async ({ page }) => {
-  await blockDraftStorage(page);
   await open(page);
   await page.locator("#ta").click();
   await page.keyboard.type("a real sentence");
@@ -251,7 +236,6 @@ test("writing taken back down to whitespace stops asking again", async ({ page }
 });
 
 test("a student who has typed nothing is never nagged on the way out", async ({ page }) => {
-  await blockDraftStorage(page);
   await open(page);
   await page.locator("#ta").click();
   await page.keyboard.type("   ");
@@ -267,8 +251,7 @@ test("a student who has typed nothing is never nagged on the way out", async ({ 
   expect(dialogs, "whitespace alone is not writing worth a warning").toEqual([]);
 });
 
-test("when recovery is unavailable, a second question never rewrites the one on screen", async ({ page }) => {
-  await blockDraftStorage(page);
+test("a second question never rewrites the one on screen", async ({ page }) => {
   await open(page);
   await setText(page, "precious words");
 
