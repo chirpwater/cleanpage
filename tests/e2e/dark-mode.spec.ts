@@ -1,17 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { CORPUS, open, setText } from "./helpers.js";
-
-const channel = (c: number): number => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
-
-const luminance = (rgb: string): number => {
-  const [r, g, b] = (rgb.match(/[\d.]+/g) ?? []).slice(0, 3).map((n) => channel(Number(n) / 255));
-  return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
-};
-
-const contrast = (a: string, b: string): number => {
-  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
-  return (hi! + 0.05) / (lo! + 0.05);
-};
+import { CORPUS, contrast, luminance, open, setText } from "./helpers.js";
 
 const surface = (page: import("@playwright/test").Page) =>
   page.evaluate(() => {

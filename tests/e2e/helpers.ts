@@ -144,6 +144,18 @@ export async function screenPages(page: Page): Promise<string[]> {
   );
 }
 
+const channel = (c: number): number => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+
+export const luminance = (rgb: string): number => {
+  const [r, g, b] = (rgb.match(/[\d.]+/g) ?? []).slice(0, 3).map((n) => channel(Number(n) / 255));
+  return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+};
+
+export const contrast = (a: string, b: string): number => {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi! + 0.05) / (lo! + 0.05);
+};
+
 export const words = (s: string): string[] => s.split(/\s+/u).filter(Boolean);
 export const firstWord = (s: string): string => words(s)[0] ?? "";
 export const lastWord = (s: string): string => {
