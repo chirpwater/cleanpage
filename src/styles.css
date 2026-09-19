@@ -30,7 +30,31 @@
   --edge: #6b7280;
   --shade: 0 2px 12px rgb(0 0 0 / 35%);
   --lift: 0 12px 36px rgb(0 0 0 / 28%);
-  color-scheme: light;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #ebe8e1;
+    --paper: #24231f;
+    --desk: #0d0f11;
+    --rule: #939ba3;
+    --bar-bg: #16191d;
+    --bar-ink: #e6e9ec;
+    --soft-ink: #a7b0b9;
+    --dim-ink: #767e86;
+    --hair: #363b41;
+    --hover: #262a30;
+    --pick: #2b333e;
+    --btn-bg: #1e2227;
+    --btn-line: #8b949d;
+    --sel-bg: #3b5878;
+    --sel-ink: #f2f5f8;
+    --focus: #8ab4f8;
+    --ok-ink: #7fd6a0;
+    --warn-ink: #f3c68f;
+    --warn-bg: #3a2b18;
+    --edge: #454b52;
+  }
 }
 @media (forced-colors: active) {
   :root {
