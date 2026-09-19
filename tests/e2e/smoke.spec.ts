@@ -1,31 +1,10 @@
 import { expect, test } from "@playwright/test";
 import { execFileSync } from "node:child_process";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
-import { NO_POPPLER, havePoppler, open } from "./helpers.js";
-
-const here = dirname(fileURLToPath(import.meta.url));
-const repo = join(here, "..", "..");
-const CORPUS = readFileSync(join(repo, "tests", "fixtures", "corpus.txt"), "utf8");
-
-const OUT =
-  process.env["CP_ARTIFACTS"] ??
-  "/tmp/claude-1000/-mnt-fast-git-cleanpage/0d261fa4-f1cc-411e-ae2f-dd8c17c61c21/scratchpad";
-
-const LINES_PER_PAGE = 30;
-const PAGE_BODY_H = 960;
-const MARGIN = 48;
-
-async function setText(page: import("@playwright/test").Page, text: string): Promise<void> {
-  await page.evaluate((t) => {
-    const ta = document.getElementById("ta") as HTMLTextAreaElement;
-    ta.focus();
-    ta.setRangeText(t, 0, ta.value.length, "end");
-    ta.dispatchEvent(new Event("input", { bubbles: true }));
-  }, text);
-  await page.waitForTimeout(600);
-}
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import {
+  CORPUS, LINES_PER_PAGE, MARGIN, NO_POPPLER, OUT, PAGE_BODY_H, havePoppler, open, setText,
+} from "./helpers.js";
 
 test("a three-page corpus lays out, fits 1366x768, and prints the same pages", async ({ page }) => {
   await open(page);

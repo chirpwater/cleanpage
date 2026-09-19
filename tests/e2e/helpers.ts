@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { createRequire } from "node:module";
 import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
@@ -10,9 +11,7 @@ export const REPO = join(here, "..", "..");
 
 export const CORPUS = readFileSync(join(REPO, "tests", "fixtures", "corpus.txt"), "utf8");
 
-export const OUT =
-  process.env["CP_ARTIFACTS"] ??
-  "/tmp/claude-1000/-mnt-fast-git-cleanpage/0d261fa4-f1cc-411e-ae2f-dd8c17c61c21/scratchpad/qa";
+export const OUT = process.env["CP_ARTIFACTS"] ?? join(REPO, "test-results", "qa");
 
 export const LINE_H = 32;
 export const LINES_PER_PAGE = 30;
@@ -20,14 +19,15 @@ export const PAGE_BODY_H = 960;
 export const MARGIN = 48;
 export const CONTENT_W = 720;
 
+const corePackage = createRequire(import.meta.url).resolve("playwright-core/package.json");
+
 export function engineUnavailable(name: string): string | null {
   const root = process.env["PLAYWRIGHT_BROWSERS_PATH"] ?? join(homedir(), ".cache", "ms-playwright");
-  const meta = JSON.parse(
-    readFileSync(join(REPO, "node_modules", "playwright-core", "browsers.json"), "utf8"),
-  ) as { browsers: { name: string; revision: string; browserVersion?: string }[] };
-  const pw = JSON.parse(
-    readFileSync(join(REPO, "node_modules", "playwright-core", "package.json"), "utf8"),
-  ) as { version: string };
+  const core = dirname(corePackage);
+  const meta = JSON.parse(readFileSync(join(core, "browsers.json"), "utf8")) as {
+    browsers: { name: string; revision: string; browserVersion?: string }[];
+  };
+  const pw = JSON.parse(readFileSync(corePackage, "utf8")) as { version: string };
   const entry = meta.browsers.find((b) => b.name === name);
   if (!entry) return `playwright-core ${pw.version} knows no browser called "${name}"`;
   if (existsSync(join(root, `${name}-${entry.revision}`))) return null;
