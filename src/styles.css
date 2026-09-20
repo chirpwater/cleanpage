@@ -16,13 +16,13 @@
   --bar-bg: light-dark(#f4f4f1, #16191d);
   --bar-ink: light-dark(#14202b, #e6e9ec);
   --soft-ink: light-dark(#58626d, #a7b0b9);
-  --dim-ink: light-dark(#656d7a, #767e86);
+  --dim-ink: light-dark(#656d7a, #838b93);
   --hair: light-dark(#d6d7d2, #363b41);
   --hover: light-dark(#e7e7e1, #262a30);
   --pick: light-dark(#e8ebef, #2b333e);
   --btn-bg: light-dark(#ffffff, #1e2227);
   --btn-line: light-dark(#4b5563, #8b949d);
-  --sel-bg: light-dark(#14202b, #3b5878);
+  --sel-bg: light-dark(#14202b, #4a6d94);
   --sel-ink: light-dark(#ffffff, #f2f5f8);
   --focus: light-dark(#0b57d0, #8ab4f8);
   --ok-ink: light-dark(#0b5323, #7fd6a0);
@@ -336,7 +336,11 @@ dialog p:empty {
   display: none;
 }
 dialog .btn {
-  border-color: var(--hair);
+  border-color: var(--btn-line);
+}
+dialog .btn:focus {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
 }
 .dlg-row {
   display: flex;
@@ -466,6 +470,8 @@ dialog .btn {
   margin: 2px 0;
 }
 #settingsAbout a {
+  display: inline-block;
+  padding: 4px 0;
   color: inherit;
 }
 .settings-actions {

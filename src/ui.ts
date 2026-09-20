@@ -1,5 +1,6 @@
 import { MARGIN, PAGE_BODY_H } from "./metrics.js";
 import { S } from "./strings.js";
+import { cleanName } from "./files.js";
 
 export type ActivationSource = "pointer" | "key";
 
@@ -101,21 +102,28 @@ export function promptDownloadName(suggested: string, restoreFocusTo: HTMLElemen
   const input = document.getElementById("downloadName") as HTMLInputElement;
   const cancel = document.getElementById("downloadCancel") as HTMLButtonElement;
   const go = document.getElementById("downloadGo") as HTMLButtonElement;
+  const error = document.getElementById("downloadNameError")!;
+  const complain = (message: string) => {
+    input.setCustomValidity(message);
+    input.setAttribute("aria-invalid", String(message !== ""));
+    error.textContent = message;
+  };
   return new Promise((resolve) => {
     let answer: string | null = null;
     input.value = suggested;
     const untrap = trapTab(dlg, [input, cancel, go]);
     const onSubmit = (event: SubmitEvent) => {
       event.preventDefault();
-      if (!input.value.trim()) {
-        input.setCustomValidity(S.downloadNameRequired);
+      const problem = !input.value.trim() ? S.downloadNameRequired : !cleanName(input.value) ? S.downloadNameInvalid : "";
+      if (problem) {
+        complain(problem);
         input.reportValidity();
         return;
       }
       answer = input.value;
       dlg.close();
     };
-    const onInput = () => input.setCustomValidity("");
+    const onInput = () => complain("");
     const onCancel = () => dlg.close();
     const onClose = () => {
       untrap();
@@ -126,7 +134,7 @@ export function promptDownloadName(suggested: string, restoreFocusTo: HTMLElemen
       restoreFocusTo.focus({ preventScroll: true });
       resolve(answer);
     };
-    input.setCustomValidity("");
+    complain("");
     form.addEventListener("submit", onSubmit);
     input.addEventListener("input", onInput);
     cancel.addEventListener("click", onCancel);

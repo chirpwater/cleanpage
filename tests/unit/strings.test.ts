@@ -60,7 +60,11 @@ const IN_CODE = [
   "errOk",
   "settingsStorageError",
   "downloadNameRequired",
+  "downloadNameInvalid",
   "resetTitle",
+  "resetBody",
+  "newTab",
+  "errTitle",
 ] as const;
 
 describe("strings.ts is the single source of the wording", () => {

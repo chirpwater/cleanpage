@@ -15,6 +15,7 @@
     <script type="module" src="./src/main.ts"></script>
   </head>
   <body>
+    <h1 class="vh">Clean Page</h1>
     <header id="bar">
       <div id="toolbar" role="toolbar" aria-label="Writing tools">
       <div class="grp" role="group" aria-label="File">
@@ -88,7 +89,7 @@
         <section id="settingsAbout" aria-labelledby="aboutTitle">
           <h3 id="aboutTitle">About</h3>
           <p>Clean Page, <span id="appVersion"></span></p>
-          <p><a href="https://www.cleanpage.org" target="_blank" rel="noopener noreferrer">https://www.cleanpage.org</a></p>
+          <p><a href="https://www.cleanpage.org" target="_blank" rel="noopener noreferrer">https://www.cleanpage.org<span class="vh" id="newTab"></span></a></p>
         </section>
         <div class="dlg-row settings-actions">
           <button type="button" id="settingsReset" class="btn">Reset</button>
@@ -102,7 +103,8 @@
       <form id="downloadForm">
         <h2 id="downloadTitle">Download your writing</h2>
         <label class="field-label" for="downloadName">File name</label>
-        <input type="text" id="downloadName" required maxlength="200" autocomplete="off" spellcheck="false" />
+        <input type="text" id="downloadName" required maxlength="200" autocomplete="off" spellcheck="false" aria-describedby="downloadNameError" />
+        <p id="downloadNameError" role="alert"></p>
         <div class="dlg-row">
           <button type="button" id="downloadCancel" class="btn">Cancel</button>
           <button type="submit" id="downloadGo" class="btn btn-safe">Download</button>
@@ -119,7 +121,8 @@
       </div>
     </dialog>
 
-    <dialog id="say" aria-labelledby="sayBody">
+    <dialog id="say" role="alertdialog" aria-labelledby="sayTitle" aria-describedby="sayBody">
+      <h2 id="sayTitle"></h2>
       <p id="sayBody"></p>
       <div class="dlg-row">
         <button type="button" id="sayOk" class="btn btn-safe">OK</button>
