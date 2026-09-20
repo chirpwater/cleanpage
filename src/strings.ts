@@ -25,6 +25,7 @@ export const S = {
   colorsDark: "Dark",
   resetSettings: "Reset",
   resetTitle: "Reset to default settings?",
+  resetBody: "Letters, font size and colors go back to how they started.",
   applySettings: "Apply",
   cancel: "Cancel",
   previewLetters: "Aa Bb",
@@ -32,10 +33,12 @@ export const S = {
 
   about: "About",
   website: "https://www.cleanpage.org",
+  newTab: "(opens in a new tab)",
 
   downloadTitle: "Download your writing",
   downloadName: "File name",
   downloadNameRequired: "Enter a file name.",
+  downloadNameInvalid: "A file name needs some letters or numbers in it.",
 
   // The writing surface
   pageLabel: "Your writing",
@@ -65,7 +68,8 @@ export const S = {
   errSave: "Sorry, that did not save. Try again.",
   errNew: "Sorry, that did not start a new page. Try again.",
   errOpen: "Sorry, that file did not open. Try again.",
-  errNotText: "That file isn't plain writing.",
+  errNotText: "That file isn't plain writing. Open a plain text file (.txt) instead.",
+  errTitle: "Something went wrong",
   errOk: "OK",
   settingsStorageError: "Could not keep your settings on this device.",
 } as const;

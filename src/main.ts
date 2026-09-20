@@ -134,6 +134,7 @@ function refreshDirty(): void {
   statusName.textContent = !dirty && name ? " — " + name : "";
   status.dataset.empty = String(empty);
   status.dataset.state = dirty ? "dirty" : "clean";
+  document.title = (dirty && hasWriting() ? "• " : "") + (name ? name + " — " : "") + S.appName;
 }
 
 ta.addEventListener("input", () => {
@@ -156,6 +157,8 @@ async function guard(kind: Guard): Promise<ReplaceApproval | null> {
 }
 
 sayOk.textContent = S.errOk;
+$("sayTitle").textContent = S.errTitle;
+$("newTab").textContent = " " + S.newTab;
 
 const tell = (message: string): void => say(sayDlg, sayBody, sayOk, message, ta);
 

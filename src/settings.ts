@@ -62,7 +62,7 @@ export function initSettings(
   });
   resetButton.addEventListener("click", () => {
     void ask(
-      { title: S.resetTitle, body: "", keep: S.cancel, go: S.resetSettings },
+      { title: S.resetTitle, body: S.resetBody, keep: S.cancel, go: S.resetSettings },
       resetButton,
     ).then((confirmed) => {
       if (!confirmed) return;
