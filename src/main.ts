@@ -129,9 +129,10 @@ function refreshDirty(): void {
   const statusKey = JSON.stringify([dirty, empty, name]);
   if (statusKey === lastStatus) return;
   lastStatus = statusKey;
-  statusGlyph.textContent = dirty ? "" : "✓";
-  statusWord.textContent = dirty ? "" : S.saved;
-  statusName.textContent = !dirty && name ? " — " + name : "";
+  const shown = !dirty && !empty;
+  statusGlyph.textContent = shown ? "✓" : "";
+  statusWord.textContent = shown ? S.saved : "";
+  statusName.textContent = shown && name ? " — " + name : "";
   status.dataset.empty = String(empty);
   status.dataset.state = dirty ? "dirty" : "clean";
   document.title = (dirty && hasWriting() ? "• " : "") + (name ? name + " — " : "") + S.appName;
