@@ -100,11 +100,11 @@
     </dialog>
 
     <dialog id="downloadDlg" aria-labelledby="downloadTitle">
-      <form id="downloadForm">
+      <form id="downloadForm" novalidate>
         <h2 id="downloadTitle">Download your writing</h2>
         <label class="field-label" for="downloadName">File name</label>
         <input type="text" id="downloadName" required maxlength="200" autocomplete="off" spellcheck="false" aria-describedby="downloadNameError" />
-        <p id="downloadNameError" role="alert"></p>
+        <p id="downloadNameError"></p>
         <div class="dlg-row">
           <button type="button" id="downloadCancel" class="btn">Cancel</button>
           <button type="submit" id="downloadGo" class="btn btn-safe">Download</button>

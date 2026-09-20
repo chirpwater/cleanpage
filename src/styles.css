@@ -469,7 +469,7 @@ dialog .btn:focus {
 }
 #settingsAbout a {
   display: inline-block;
-  padding: 4px 0;
+  padding: 5px 0;
   color: inherit;
 }
 .settings-actions {
