@@ -10,4 +10,5 @@ html[data-font="sans"] .tp-text,
 .font-preview[data-preview-font="sans"],
 .size-preview[data-preview-font="sans"] {
   font-family: "Source Sans 3", sans-serif;
+  letter-spacing: 0.01em;
 }
