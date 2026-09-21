@@ -36,6 +36,7 @@ const btnNew = $<HTMLButtonElement>("btnNew");
 const btnOpen = $<HTMLButtonElement>("btnOpen");
 const btnSave = $<HTMLButtonElement>("btnSave");
 const btnPrint = $<HTMLButtonElement>("btnPrint");
+const btnCopy = $<HTMLButtonElement>("btnCopy");
 const btnSettings = $<HTMLButtonElement>("btnSettings");
 const settingsDlg = $<HTMLDialogElement>("settingsDlg");
 const downloadDlg = $<HTMLDialogElement>("downloadDlg");
@@ -106,6 +107,8 @@ let lastSavedText = "";
 let closeWarningArmed = false;
 let lastStatus = "";
 let appReady = false;
+let copyNotice = false;
+let copyNoticeTimer = 0;
 
 const isDirty = (): boolean => ta.value !== lastSavedText;
 const hasWriting = (): boolean => ta.value.trim().length > 0;
@@ -126,13 +129,13 @@ function refreshDirty(): void {
 
   const name = files.currentFileName();
   const empty = !hasWriting() && !name;
-  const statusKey = JSON.stringify([dirty, empty, name]);
+  const statusKey = JSON.stringify([dirty, empty, name, copyNotice]);
   if (statusKey === lastStatus) return;
   lastStatus = statusKey;
   const shown = !dirty && !empty;
-  statusGlyph.textContent = shown ? "✓" : "";
-  statusWord.textContent = shown ? S.saved : "";
-  statusName.textContent = shown && name ? " — " + name : "";
+  statusGlyph.textContent = shown || copyNotice ? "✓" : "";
+  statusWord.textContent = copyNotice ? S.copied : shown ? S.saved : "";
+  statusName.textContent = !copyNotice && shown && name ? " — " + name : "";
   status.dataset.empty = String(empty);
   status.dataset.state = dirty ? "dirty" : "clean";
   document.title = (dirty && hasWriting() ? "• " : "") + (name ? name + " — " : "") + S.appName;
@@ -288,6 +291,21 @@ btnPrint.addEventListener("click", () => {
   printDoc.buildIfStale();
   window.print();
   ta.focus();
+});
+btnCopy.addEventListener("click", () => {
+  const { selectionStart, selectionEnd, selectionDirection } = ta;
+  ta.focus();
+  ta.select();
+  const copied = document.execCommand("copy");
+  ta.setSelectionRange(selectionStart, selectionEnd, selectionDirection);
+  if (!copied) return;
+  clearTimeout(copyNoticeTimer);
+  copyNotice = true;
+  refreshDirty();
+  copyNoticeTimer = window.setTimeout(() => {
+    copyNotice = false;
+    refreshDirty();
+  }, 2000);
 });
 addEventListener("beforeprint", () => printDoc.buildIfStale());
 addEventListener("afterprint", () => ta.focus());

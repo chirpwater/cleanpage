@@ -5,7 +5,7 @@ test.beforeEach(async ({ page }) => {
   await expect(page.locator("#ta")).toBeFocused();
 });
 
-test("settings are pending until Apply, and Reset opens a confirm dialog", async ({ page }) => {
+test("settings are pending until Apply, and Reset stages the defaults", async ({ page }) => {
   const root = page.locator("html");
   await expect(page.locator("#bar input[type=radio]")).toHaveCount(0);
 
@@ -22,15 +22,18 @@ test("settings are pending until Apply, and Reset opens a confirm dialog", async
 
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   await page.locator("#settingsReset").click();
-  await expect(page.locator("#dlgTitle")).toHaveText("Reset to default settings?");
-  await page.locator("#dlgKeep").click();
   await expect(page.locator("#settingsDlg")).toBeVisible();
-  await expect(page.getByRole("radio", { name: "Sans-serif" })).toBeChecked();
+  await expect(page.getByRole("radio", { name: "Serif", exact: true })).toBeChecked();
+  await expect(page.getByRole("radio", { name: "Regular", exact: true })).toBeChecked();
   await expect(root).toHaveAttribute("data-font", "sans");
   await expect(root).toHaveAttribute("data-size", "large");
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
 
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await expect(page.getByRole("radio", { name: "Sans-serif" })).toBeChecked();
+  await expect(page.getByRole("radio", { name: "Large", exact: true })).toBeChecked();
   await page.locator("#settingsReset").click();
-  await page.locator("#dlgGo").click();
+  await page.getByRole("button", { name: "Apply", exact: true }).click();
   await expect(page.locator("#settingsDlg")).not.toBeVisible();
   await expect(root).toHaveAttribute("data-font", "serif");
   await expect(root).toHaveAttribute("data-size", "regular");

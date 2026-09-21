@@ -15,6 +15,7 @@ const IN_MARKUP = [
   "save",
   "download",
   "print",
+  "copy",
   "undo",
   "redo",
   "settings",
@@ -43,6 +44,7 @@ const IN_MARKUP = [
 
 const IN_CODE = [
   "tabHintMac",
+  "copied",
   "saved",
   "savedPrefix",
   "pageCount",
@@ -61,8 +63,6 @@ const IN_CODE = [
   "settingsStorageError",
   "downloadNameRequired",
   "downloadNameInvalid",
-  "resetTitle",
-  "resetBody",
   "newTab",
   "errTitle",
 ] as const;

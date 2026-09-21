@@ -55,7 +55,7 @@ test("only applied settings survive tab closure, and resetting settings preserve
   await reopened.locator("#ta").fill(STORY);
   await reopened.locator("#btnSettings").click();
   await reopened.locator("#settingsReset").click();
-  await reopened.locator("#dlgGo").click();
+  await reopened.locator("#settingsApply").click();
   await expect(reopened.locator("#settingsDlg")).toBeHidden();
   await expect(reopened.locator("#ta")).toHaveValue(STORY);
   expect(await reopened.evaluate((key) => JSON.parse(localStorage.getItem(key)!), SETTINGS_KEY))

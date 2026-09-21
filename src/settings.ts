@@ -1,6 +1,3 @@
-import { S } from "./strings.js";
-import { ask } from "./ui.js";
-
 export type Settings = {
   font: "serif" | "sans";
   size: "regular" | "large";
@@ -60,17 +57,7 @@ export function initSettings(
   document.getElementById("settingsCancel")!.addEventListener("click", () => {
     dialog.close();
   });
-  resetButton.addEventListener("click", () => {
-    void ask(
-      { title: S.resetTitle, body: S.resetBody, keep: S.cancel, go: S.resetSettings },
-      resetButton,
-    ).then((confirmed) => {
-      if (!confirmed) return;
-      committed = { ...DEFAULT_SETTINGS };
-      onApply({ ...committed });
-      dialog.close();
-    });
-  });
+  resetButton.addEventListener("click", () => setChoices(DEFAULT_SETTINGS));
   dialog.addEventListener("keydown", (event) => {
     if (event.key !== "Tab" || event.isComposing) return;
     const stops = Array.from(form.querySelectorAll<HTMLInputElement | HTMLButtonElement>('input[type="radio"]:checked, button'))

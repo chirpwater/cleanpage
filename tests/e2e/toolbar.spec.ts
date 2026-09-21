@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { contrast, open } from "./helpers.js";
 
-const TOOLS = ["New", "Open", "Download", "Print", "Undo", "Redo", "Settings"];
+const TOOLS = ["New", "Open", "Download", "Print", "Copy", "Undo", "Redo", "Settings"];
 
 test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
 
@@ -58,4 +58,23 @@ test("a tool a child cannot use yet is still a tool a child can read", async ({ 
   expect(quiet, "and still reads as the quieter of the two").toBeLessThan(
     contrast(paint.on, paint.bar),
   );
+});
+
+test("Copy copies all writing without moving the caret", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await open(page);
+  await page.locator("#ta").fill("First line\nSecond line");
+  await page.locator("#ta").evaluate((element) => {
+    (element as HTMLTextAreaElement).setSelectionRange(5, 5);
+  });
+  await page.locator("#btnCopy").click();
+
+  await expect(page.locator("#ta")).toBeFocused();
+  await expect(page.locator("#statusWord")).toHaveText("Copied to clipboard");
+  expect(await page.locator("#ta").evaluate((element) => {
+    const ta = element as HTMLTextAreaElement;
+    return { start: ta.selectionStart, end: ta.selectionEnd, length: ta.value.length };
+  })).toEqual({ start: 5, end: 5, length: 22 });
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe("First line\nSecond line");
+  await expect(page.locator("#statusWord")).toBeEmpty({ timeout: 2500 });
 });
