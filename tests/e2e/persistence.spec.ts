@@ -59,7 +59,7 @@ test("only applied settings survive tab closure, and resetting settings preserve
   await expect(reopened.locator("#settingsDlg")).toBeHidden();
   await expect(reopened.locator("#ta")).toHaveValue(STORY);
   expect(await reopened.evaluate((key) => JSON.parse(localStorage.getItem(key)!), SETTINGS_KEY))
-    .toEqual({ font: "serif", size: "regular", theme: "light" });
+    .toEqual({ font: "serif", size: "regular", theme: "light", spell: "off" });
 });
 
 test("previously stored drafts are never restored", async ({ page }) => {

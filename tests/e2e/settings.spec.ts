@@ -132,3 +132,19 @@ test("keyboard focus cycles within settings", async ({ page }) => {
     expect(inside).toBe(true);
   }
 });
+
+test("spelling turns native spellcheck on and persists across reloads", async ({ page }) => {
+  const spellcheck = () => page.locator("#ta").evaluate((node: HTMLTextAreaElement) => node.spellcheck);
+  expect(await spellcheck()).toBe(false);
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("radio", { name: "On", exact: true }).check();
+  await page.getByRole("button", { name: "Apply", exact: true }).click();
+  expect(await spellcheck()).toBe(true);
+  await page.reload();
+  await expect(page.locator("#ta")).toBeFocused();
+  expect(await spellcheck()).toBe(true);
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("radio", { name: "Off", exact: true }).check();
+  await page.getByRole("button", { name: "Apply", exact: true }).click();
+  expect(await spellcheck()).toBe(false);
+});

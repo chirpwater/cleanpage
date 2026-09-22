@@ -2,12 +2,14 @@ export type Settings = {
   font: "serif" | "sans";
   size: "regular" | "large";
   theme: "light" | "dark";
+  spell: "off" | "on";
 };
 
 export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
   font: "serif",
   size: "regular",
   theme: "light",
+  spell: "off",
 });
 
 export function applySettings(settings: Settings): void {
@@ -15,6 +17,7 @@ export function applySettings(settings: Settings): void {
   root.dataset.font = settings.font;
   root.dataset.size = settings.size;
   root.dataset.theme = settings.theme;
+  (document.getElementById("ta") as HTMLTextAreaElement).spellcheck = settings.spell === "on";
 }
 
 export function initSettings(
@@ -50,6 +53,7 @@ export function initSettings(
       font: values.get("font") === "sans" ? "sans" : "serif",
       size: values.get("size") === "large" ? "large" : "regular",
       theme: values.get("theme") === "dark" ? "dark" : "light",
+      spell: values.get("spell") === "on" ? "on" : "off",
     };
     onApply({ ...committed });
     dialog.close();

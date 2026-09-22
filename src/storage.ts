@@ -36,9 +36,10 @@ export function readSettings(): Settings | null {
     font: settings.font === "dys" ? "sans" : settings.font,
     size: settings.size === "large" ? "large" : "regular",
     theme: settings.theme === "dark" ? "dark" : "light",
+    spell: settings.spell === "on" ? "on" : "off",
   };
 }
 
 export function writeSettings(settings: Settings): boolean {
-  return write(SETTINGS_KEY, { font: settings.font, size: settings.size, theme: settings.theme });
+  return write(SETTINGS_KEY, { font: settings.font, size: settings.size, theme: settings.theme, spell: settings.spell });
 }
