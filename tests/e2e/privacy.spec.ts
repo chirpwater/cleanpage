@@ -94,7 +94,7 @@ test("only settings persist; writing stays out of browser storage and caches", a
   const session = storage["sessionStorage"] as Record<string, string>;
   expect(session).toEqual({});
   expect(Object.keys(local)).toEqual([SETTINGS_KEY]);
-  expect(JSON.parse(local[SETTINGS_KEY]!)).toEqual({ font: "sans", size: "large", theme: "light", spell: "off" });
+  expect(JSON.parse(local[SETTINGS_KEY]!)).toEqual({ font: "sans", size: "large", theme: "light", spell: "on" });
   expect(JSON.stringify(storage), "browser storage never contains writing").not.toContain(SECRET);
   expect(storage["cookie"]).toBe("");
   expect(storage["idb"]).toEqual([]);

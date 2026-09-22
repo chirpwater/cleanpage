@@ -36,7 +36,7 @@ export function readSettings(): Settings | null {
     font: settings.font === "dys" ? "sans" : settings.font,
     size: settings.size === "large" ? "large" : "regular",
     theme: settings.theme === "dark" ? "dark" : "light",
-    spell: settings.spell === "on" ? "on" : "off",
+    spell: settings.spell === "off" ? "off" : "on",
   };
 }
 

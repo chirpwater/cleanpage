@@ -9,7 +9,7 @@ export const DEFAULT_SETTINGS: Readonly<Settings> = Object.freeze({
   font: "serif",
   size: "regular",
   theme: "light",
-  spell: "off",
+  spell: "on",
 });
 
 export function applySettings(settings: Settings): void {
@@ -53,7 +53,7 @@ export function initSettings(
       font: values.get("font") === "sans" ? "sans" : "serif",
       size: values.get("size") === "large" ? "large" : "regular",
       theme: values.get("theme") === "dark" ? "dark" : "light",
-      spell: values.get("spell") === "on" ? "on" : "off",
+      spell: values.get("spell") === "off" ? "off" : "on",
     };
     onApply({ ...committed });
     dialog.close();

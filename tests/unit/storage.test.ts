@@ -24,11 +24,11 @@ describe("settings storage", () => {
 
   it("migrates earlier sizes and missing theme or spelling to the new defaults", () => {
     values.set(SETTINGS_KEY, JSON.stringify({ font: "dys", size: "small" }));
-    expect(readSettings()).toEqual({ font: "sans", size: "regular", theme: "light", spell: "off" });
+    expect(readSettings()).toEqual({ font: "sans", size: "regular", theme: "light", spell: "on" });
     values.set(SETTINGS_KEY, JSON.stringify({ font: "serif", size: "medium", theme: "system" }));
-    expect(readSettings()).toEqual({ font: "serif", size: "regular", theme: "light", spell: "off" });
+    expect(readSettings()).toEqual({ font: "serif", size: "regular", theme: "light", spell: "on" });
     values.set(SETTINGS_KEY, JSON.stringify({ font: "sans", size: "large", theme: "dark" }));
-    expect(readSettings()).toEqual({ font: "sans", size: "large", theme: "dark", spell: "off" });
+    expect(readSettings()).toEqual({ font: "sans", size: "large", theme: "dark", spell: "on" });
   });
 
   it.each(["{", "null", "[]", "{}",
