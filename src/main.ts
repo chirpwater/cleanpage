@@ -162,7 +162,7 @@ async function guard(kind: Guard): Promise<ReplaceApproval | null> {
 
 sayOk.textContent = S.errOk;
 $("sayTitle").textContent = S.errTitle;
-$("newTab").textContent = " " + S.newTab;
+for (const hint of document.querySelectorAll(".newtab")) hint.textContent = " " + S.newTab;
 
 const tell = (message: string): void => say(sayDlg, sayBody, sayOk, message, ta);
 
