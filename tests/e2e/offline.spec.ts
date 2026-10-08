@@ -57,9 +57,6 @@ test("after one visit the page loads and works with the network off", async ({ p
   test.skip(reg === "unsupported", "this browser has no service worker");
   expect(reg).toBe("active");
 
-  // No skipWaiting() and no clients.claim(), deliberately: a new version must
-  // never activate under a child who is mid-sentence. So the FIRST load is
-  // uncontrolled by design, and the worker takes over on the next cold start.
   await page.reload();
   await page.waitForFunction(() => !!navigator.serviceWorker.controller);
 

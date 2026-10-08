@@ -437,7 +437,7 @@ void boot();
 addEventListener("load", () => {
   if (!import.meta.env.PROD) return;
   try {
-    void navigator.serviceWorker?.register("./sw.js", { updateViaCache: "all" }).catch(() => {
+    void navigator.serviceWorker?.register("./sw.js", { updateViaCache: "none" }).catch(() => {
     });
   } catch {
   }

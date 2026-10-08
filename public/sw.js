@@ -3,6 +3,7 @@ const CACHE = `${CACHE_PREFIX}__CP_BUILD__`;
 const ASSETS = ["__CP_ASSETS__"];
 
 self.addEventListener("install", (e) => {
+  self.skipWaiting();
   // `cache: "reload"` so a new build id is precached from network truth rather
   // than from whatever the browser's HTTP cache is still holding. The font
   // URLs are unhashed and `app.js`/`app.css` are too, so without this a font
@@ -18,7 +19,7 @@ self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches.keys().then((ks) =>
       Promise.all(ks.filter((k) => k.startsWith(CACHE_PREFIX) && k !== CACHE).map((k) => caches.delete(k))),
-    ),
+    ).then(() => self.clients.claim()),
   );
 });
 
