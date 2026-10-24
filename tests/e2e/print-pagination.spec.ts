@@ -1,5 +1,4 @@
 import { expect, test } from "@playwright/test";
-import { execFileSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
@@ -8,11 +7,15 @@ import {
   NO_POPPLER,
   OUT,
   firstWord,
+  firstWordBox,
   havePoppler,
   lastWord,
   numberedLines,
   numberedWords,
   open,
+  pdfInfo,
+  pdfPageCount,
+  pdfPageText,
   screenPages,
   setText,
   words,
@@ -67,37 +70,20 @@ async function printToPdf(
   return path;
 }
 
-/** The box of the first word on page 1, in PostScript points. */
-function firstWordBox(path: string): { xMin: number; yMin: number; word: string } {
-  const xml = execFileSync("pdftotext", ["-bbox", "-f", "1", "-l", "1", path, "-"], {
-    encoding: "utf8",
-  });
-  const m = /<word xMin="([\d.-]+)" yMin="([\d.-]+)"[^>]*>([^<]*)<\/word>/.exec(xml);
-  if (!m) throw new Error("no words on page 1 of " + path);
-  return { xMin: Number(m[1]), yMin: Number(m[2]), word: m[3]! };
-}
-
-const pdfPageCount = (path: string): number =>
-  Number(/Pages:\s+(\d+)/.exec(execFileSync("pdfinfo", [path], { encoding: "utf8" }))?.[1]);
-
-const pdfPageText = (path: string, p: number): string =>
-  execFileSync("pdftotext", ["-f", String(p), "-l", String(p), path, "-"], { encoding: "utf8" });
-
-test("a numbered document prints one sheet per screen page, holding lines 30n..30n+29", async ({
+for (const N of [31, 95]) {
+test(`${N} numbered lines print one sheet per screen page, holding lines 30n..30n+29`, async ({
   page,
 }) => {
   await open(page);
-  const N = 95;
   await setText(page, numberedLines(N));
 
   const slices = await screenPages(page);
   expect(slices).toHaveLength(Math.ceil(N / LINES_PER_PAGE));
 
-  const path = await printToPdf(page, "numbered-95.pdf");
+  const path = await printToPdf(page, `numbered-${N}.pdf`);
   expect(pdfPageCount(path), "PDF sheets == screen pages").toBe(slices.length);
 
-  const info = execFileSync("pdfinfo", [path], { encoding: "utf8" });
-  expect(info).toMatch(/Page size:\s+612 x 792 pts \(letter\)/);
+  expect(pdfInfo(path)).toMatch(/Page size:\s+612 x 792 pts \(letter\)/);
 
   for (let p = 1; p <= slices.length; p++) {
     const got = words(pdfPageText(path, p)).filter((w) => /^L\d{3}$/.test(w));
@@ -107,6 +93,7 @@ test("a numbered document prints one sheet per screen page, holding lines 30n..3
     expect(got, `PDF page ${p}`).toEqual(want);
   }
 });
+}
 
 test("wrapped prose: every PDF page opens and closes on the same word as the screen page", async ({
   page,

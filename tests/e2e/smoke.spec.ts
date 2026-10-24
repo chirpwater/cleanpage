@@ -1,9 +1,8 @@
 import { expect, test } from "@playwright/test";
-import { execFileSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
-  CORPUS, LINES_PER_PAGE, MARGIN, NO_POPPLER, OUT, PAGE_BODY_H, havePoppler, open, setText,
+  CORPUS, MARGIN, NO_POPPLER, OUT, PAGE_BODY_H, geometry, havePoppler, open, pdfInfo, pdfPageCount, setText,
 } from "./helpers.js";
 
 test("a three-page corpus lays out, fits 1366x768, and prints the same pages", async ({ page }) => {
@@ -15,22 +14,9 @@ test("a three-page corpus lays out, fits 1366x768, and prints the same pages", a
   const width = await page.evaluate(() => getComputedStyle(document.getElementById("ta")!).width);
   expect(width).toBe("720px");
 
-  const geom = await page.evaluate(() => {
-    const ta = document.getElementById("ta") as HTMLTextAreaElement;
-    const sheet = document.getElementById("sheet")!;
-    const rules = Array.from(document.querySelectorAll<HTMLElement>("#breaks .rule"));
-    return {
-      taHeight: ta.getBoundingClientRect().height,
-      sheetHeight: sheet.getBoundingClientRect().height,
-      sheetWidth: sheet.getBoundingClientRect().width,
-      ruleTops: rules.map((r) => parseFloat(r.style.top)),
-      scrollWidth: document.documentElement.scrollWidth,
-      clientWidth: document.documentElement.clientWidth,
-      printPages: document.querySelectorAll("#printdoc .page").length,
-    };
-  });
+  const geom = await geometry(page);
 
-  const pages = Math.round(geom.taHeight / PAGE_BODY_H);
+  const pages = geom.pages;
   expect(pages).toBeGreaterThanOrEqual(3);
   expect(geom.taHeight).toBe(pages * PAGE_BODY_H);
   expect(geom.sheetHeight).toBe(pages * PAGE_BODY_H + 2 * MARGIN);
@@ -56,25 +42,6 @@ test("a three-page corpus lays out, fits 1366x768, and prints the same pages", a
   const printPagesInPrintMedia = await page.locator("#printdoc .page").count();
   expect(printPagesInPrintMedia).toBe(pages);
 
-  const firstWords: string[] = await page.evaluate((n) => {
-    const secs = Array.from(document.querySelectorAll("#printdoc .page pre"));
-    return secs.slice(0, n).map((s) => (s.textContent ?? "").trimStart().split(/\s+/)[0] ?? "");
-  }, pages);
-  expect(firstWords).toHaveLength(pages);
-
-  const lineCounts = await page.evaluate((lpp) => {
-    const secs = Array.from(document.querySelectorAll<HTMLElement>("#printdoc .page pre"));
-    return secs.map((pre) => {
-      const r = document.createRange();
-      r.selectNodeContents(pre);
-      const tops = new Set<number>();
-      for (const rect of Array.from(r.getClientRects())) tops.add(Math.round(rect.top * 4) / 4);
-      return { boxes: tops.size, lpp };
-    });
-  }, LINES_PER_PAGE);
-  for (const c of lineCounts.slice(0, -1)) expect(c.boxes).toBe(LINES_PER_PAGE);
-  expect(lineCounts[lineCounts.length - 1]!.boxes).toBeLessThanOrEqual(LINES_PER_PAGE);
-
   if (!havePoppler()) {
     test.info().annotations.push({ type: "poppler", description: NO_POPPLER });
     return;
@@ -89,17 +56,6 @@ test("a three-page corpus lays out, fits 1366x768, and prints the same pages", a
   writeFileSync(pdfPath, pdf);
   await page.emulateMedia({ media: null });
 
-  const info = execFileSync("pdfinfo", [pdfPath], { encoding: "utf8" });
-  const pdfPages = Number(/Pages:\s+(\d+)/.exec(info)?.[1]);
-  expect(pdfPages).toBe(pages);
-  expect(info).toMatch(/Page size:\s+612 x 792 pts \(letter\)/);
-
-  for (let p = 1; p <= pages; p++) {
-    const text = execFileSync("pdftotext", ["-f", String(p), "-l", String(p), pdfPath, "-"], {
-      encoding: "utf8",
-    });
-    const first = text.trimStart().split(/\s+/)[0] ?? "";
-    expect(first, `first word of PDF page ${p}`).toBe(firstWords[p - 1]);
-  }
-
+  expect(pdfPageCount(pdfPath)).toBe(pages);
+  expect(pdfInfo(pdfPath)).toMatch(/Page size:\s+612 x 792 pts \(letter\)/);
 });

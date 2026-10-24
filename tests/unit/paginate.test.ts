@@ -103,6 +103,17 @@ describe("pageSlices", () => {
     expect(slices[1]!.split("\n")).toHaveLength(30);
   });
 
+  it("counts and slices at whatever lines-per-page the spacing gives", () => {
+    expect(pagesOf(evenStarts(40), 40)).toBe(1);
+    expect(pagesOf(evenStarts(41), 40)).toBe(2);
+    expect(pagesOf(evenStarts(24), 24)).toBe(1);
+    expect(pagesOf(evenStarts(25), 24)).toBe(2);
+
+    const text = "x".repeat(410);
+    expect(pageSlices(text, evenStarts(41), 40)[0]).toHaveLength(400);
+    expect(pageSlices(text, evenStarts(41), 40).join("")).toBe(text);
+  });
+
   it("returns one empty slice for an empty document", () => {
     expect(pageSlices("", [0])).toEqual([""]);
   });

@@ -13,10 +13,7 @@ export const CORPUS = readFileSync(join(REPO, "tests", "fixtures", "corpus.txt")
 
 export const OUT = process.env["CP_ARTIFACTS"] ?? join(REPO, "test-results", "qa");
 
-export const LINE_H = 32;
-export const LINES_PER_PAGE = 30;
-export const PAGE_BODY_H = 960;
-export const MARGIN = 48;
+export { LINE_H, LINES_PER_PAGE, MARGIN, PAGE_BODY_H } from "../../src/metrics.js";
 export const CONTENT_W = 720;
 
 const corePackage = createRequire(import.meta.url).resolve("playwright-core/package.json");
@@ -158,3 +155,73 @@ export const numberedWords = (n: number): string =>
 
 export const numberedLines = (n: number): string =>
   Array.from({ length: n }, (_, i) => "L" + String(i + 1).padStart(3, "0")).join("\n");
+
+export const pdfInfo = (path: string): string => execFileSync("pdfinfo", [path], { encoding: "utf8" });
+
+export const pdfPageCount = (path: string): number => Number(/Pages:\s+(\d+)/.exec(pdfInfo(path))?.[1]);
+
+export const pdfPageText = (path: string, p: number): string =>
+  execFileSync("pdftotext", ["-f", String(p), "-l", String(p), path, "-"], { encoding: "utf8" });
+
+export function firstWordBox(path: string): { xMin: number; yMin: number; word: string } {
+  const xml = execFileSync("pdftotext", ["-bbox", "-f", "1", "-l", "1", path, "-"], { encoding: "utf8" });
+  const m = /<word xMin="([\d.-]+)" yMin="([\d.-]+)"[^>]*>([^<]*)<\/word>/.exec(xml);
+  if (!m) throw new Error("no words on page 1 of " + path);
+  return { xMin: Number(m[1]), yMin: Number(m[2]), word: m[3]! };
+}
+
+export interface Disk {
+  files: Record<string, string>;
+  savePicks: number;
+  openPicks: number;
+  nextSaveName: string;
+  nextOpen: { name: string; text: string } | null;
+}
+
+declare global {
+  interface Window {
+    __disk: Disk;
+  }
+}
+
+export async function mockPickers(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    const disk: Disk = {
+      files: {},
+      savePicks: 0,
+      openPicks: 0,
+      nextSaveName: "story.txt",
+      nextOpen: null,
+    };
+    window.__disk = disk;
+
+    const handleFor = (name: string) => ({
+      kind: "file" as const,
+      name,
+      queryPermission: async () => "granted" as PermissionState,
+      requestPermission: async () => "granted" as PermissionState,
+      getFile: async () => new File([disk.files[name] ?? ""], name, { type: "text/plain" }),
+      createWritable: async () => ({
+        write: async (b: Blob | string) => {
+          disk.files[name] = typeof b === "string" ? b : await (b as Blob).text();
+        },
+        close: async () => undefined,
+      }),
+    });
+
+    (window as unknown as Record<string, unknown>)["showSaveFilePicker"] = async () => {
+      disk.savePicks++;
+      return handleFor(disk.nextSaveName);
+    };
+    (window as unknown as Record<string, unknown>)["showOpenFilePicker"] = async () => {
+      disk.openPicks++;
+      const o = disk.nextOpen;
+      if (!o) throw new DOMException("cancelled", "AbortError");
+      disk.files[o.name] = o.text;
+      return [handleFor(o.name)];
+    };
+  });
+}
+
+export const disk = (page: Page) => page.evaluate(() => window.__disk);
+
