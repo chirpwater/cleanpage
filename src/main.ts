@@ -68,6 +68,24 @@ function announcePages(pages: number): void {
   }, 300);
 }
 
+let lastLines = -1;
+let layoutQueued = false;
+
+function queueLayout(): void {
+  if (layoutQueued) return;
+  layoutQueued = true;
+  requestAnimationFrame(() => {
+    layoutQueued = false;
+    layout();
+  });
+}
+
+function relayout(): void {
+  clearCache();
+  lastLines = -1;
+  layout();
+}
+
 function layout(): void {
   const text = mirrorText(ta.value);
   const lineH = lineHeightOf(mirror);
@@ -77,19 +95,22 @@ function layout(): void {
   const pages = pagesOf(starts, lpp);
   const narrow = ta.clientWidth < mirror.clientWidth;
   if (narrow) {
-    const y = scrollY;
-    ta.style.height = "0px";
-    ta.style.height = ta.scrollHeight + "px";
-    scrollTo(0, y);
+    if (starts.length !== lastLines) {
+      const y = scrollY;
+      ta.style.height = "0px";
+      ta.style.height = ta.scrollHeight + "px";
+      scrollTo(0, y);
+    }
   } else {
     ta.style.height = pages * pageH + "px";
   }
+  lastLines = narrow ? starts.length : -1;
   renderBreaks(breaks, narrow ? 1 : pages, pageH);
   printDoc.schedule();
   announcePages(pages);
 }
 
-addEventListener("resize", layout);
+addEventListener("resize", queueLayout);
 
 const publishBarHeight = (): void => {
   document.documentElement.style.setProperty("--bar-h", bar.offsetHeight + "px");
@@ -111,16 +132,18 @@ let copyNotice = false;
 let copyNoticeTimer = 0;
 
 const isDirty = (): boolean => ta.value !== lastSavedText;
-const hasWriting = (): boolean => ta.value.trim().length > 0;
+const hasWriting = (text: string = ta.value): boolean => /\S/.test(text);
 
 const onBeforeUnload = (e: BeforeUnloadEvent): void => {
   e.preventDefault();
 };
 
 function refreshDirty(): void {
-  const dirty = isDirty();
+  const text = ta.value;
+  const dirty = text !== lastSavedText;
+  const writing = hasWriting(text);
 
-  const warnOnClose = dirty && hasWriting();
+  const warnOnClose = dirty && writing;
   if (warnOnClose !== closeWarningArmed) {
     closeWarningArmed = warnOnClose;
     if (warnOnClose) addEventListener("beforeunload", onBeforeUnload);
@@ -128,7 +151,7 @@ function refreshDirty(): void {
   }
 
   const name = files.currentFileName();
-  const empty = !hasWriting() && !name;
+  const empty = !writing && !name;
   const statusKey = JSON.stringify([dirty, empty, name, copyNotice]);
   if (statusKey === lastStatus) return;
   lastStatus = statusKey;
@@ -138,12 +161,12 @@ function refreshDirty(): void {
   statusName.textContent = !copyNotice && shown && name ? " — " + name : "";
   status.dataset.empty = String(empty);
   status.dataset.state = dirty ? "dirty" : "clean";
-  document.title = (dirty && hasWriting() ? "• " : "") + (name ? name + " — " : "") + S.appName;
+  document.title = (dirty && writing ? "• " : "") + (name ? name + " — " : "") + S.appName;
 }
 
 ta.addEventListener("input", () => {
   refreshDirty();
-  requestAnimationFrame(layout);
+  queueLayout();
 });
 
 const askingSomething = (): boolean => dlg.open || sayDlg.open || settingsDlg.open || downloadDlg.open;
@@ -154,10 +177,11 @@ type ReplaceApproval = { discardText: string | null };
 async function guard(kind: Guard): Promise<ReplaceApproval | null> {
   if (!appReady || askingSomething()) return null;
   refreshDirty();
-  const needsConfirmation = hasWriting() && (kind === "new" || isDirty());
+  const text = ta.value;
+  const needsConfirmation = hasWriting(text) && (kind === "new" || isDirty());
   if (!needsConfirmation) return { discardText: null };
   const confirmed = await confirmDiscard(kind, ta);
-  return confirmed ? { discardText: ta.value } : null;
+  return confirmed ? { discardText: text } : null;
 }
 
 sayOk.textContent = S.errOk;
@@ -203,45 +227,48 @@ function endFileAction(): void {
   toolbar.refresh();
 }
 
+async function runFileAction(
+  kind: Guard,
+  work: (approval: ReplaceApproval) => Promise<void>,
+  failure: string,
+): Promise<void> {
+  if (fileBusy) return;
+  const approval = await guard(kind);
+  if (!approval || !beginFileAction()) return;
+  try {
+    await work(approval);
+  } catch {
+    tell(failure);
+  } finally {
+    endFileAction();
+  }
+}
+
 btnNew.addEventListener("click", () => {
-  void (async () => {
-    if (fileBusy || !(await guard("new"))) return;
-    if (!beginFileAction()) return;
+  void runFileAction("new", async () => {
     const unlock = lockDocument();
     try {
       files.forgetFile();
       loadDocument("");
-    } catch {
-      tell(S.errNew);
     } finally {
       unlock();
-      endFileAction();
     }
-  })();
+  }, S.errNew);
 });
 
 btnOpen.addEventListener("click", () => {
   void doOpen();
 });
 
-async function doOpen(): Promise<void> {
-  if (fileBusy) return;
-  const approval = await guard("open");
-  if (!approval) return;
-  if (!beginFileAction()) return;
-  try {
+const doOpen = (): Promise<void> =>
+  runFileAction("open", async (approval) => {
     const opened = await files.open();
     if (!opened) {
       ta.focus();
       return;
     }
     await acceptOpened(opened, approval.discardText);
-  } catch {
-    tell(S.errOpen);
-  } finally {
-    endFileAction();
-  }
-}
+  }, S.errOpen);
 
 async function acceptOpened(opened: files.OpenedFile, approvedDiscard: string | null): Promise<void> {
   if (files.looksBinary(opened.text)) {
@@ -250,7 +277,8 @@ async function acceptOpened(opened: files.OpenedFile, approvedDiscard: string | 
   }
 
   refreshDirty();
-  if (isDirty() && hasWriting() && ta.value !== approvedDiscard && !(await guard("open"))) return;
+  const text = ta.value;
+  if (text !== lastSavedText && hasWriting(text) && text !== approvedDiscard && !(await guard("open"))) return;
   const unlock = lockDocument();
   try {
     files.adopt(opened);
@@ -322,25 +350,15 @@ addEventListener("dragover", (e) => {
 addEventListener("drop", (e) => {
   if (!e.dataTransfer || e.dataTransfer.files.length === 0) return;
   e.preventDefault();
-  if (fileBusy || askingSomething()) return;
+  if (askingSomething()) return;
   const file = Array.from(e.dataTransfer.files).find(isTextFile);
   if (!file) {
     tell(S.errNotText);
     return;
   }
-  void (async () => {
-    if (fileBusy) return;
-    const approval = await guard("open");
-    if (!approval) return;
-    if (!beginFileAction()) return;
-    try {
-      await acceptOpened(await files.readDropped(file), approval.discardText);
-    } catch {
-      tell(S.errOpen);
-    } finally {
-      endFileAction();
-    }
-  })();
+  void runFileAction("open", async (approval) => {
+    await acceptOpened(await files.readDropped(file), approval.discardText);
+  }, S.errOpen);
 });
 
 ta.addEventListener("keydown", (e) => {
@@ -390,8 +408,7 @@ let settingsScroll = { y: 0, h: 0 };
 let settingsStored = true;
 const settings = initSettings(initialSettings, (value) => {
   applySettings(value);
-  clearCache();
-  layout();
+  relayout();
   settingsStored = writeSettings(value);
 }, () => {
   refocusInPlace(settingsScroll.y, settingsScroll.h);
@@ -416,18 +433,14 @@ async function boot(): Promise<void> {
     await document.fonts.load('16px "Source Serif 4"');
   } catch {
   }
-  clearCache();
-  layout();
+  relayout();
   printDoc.build();
   appReady = true;
   ta.readOnly = documentChanges > 0;
   ta.focus();
 }
 
-document.fonts.addEventListener("loadingdone", () => {
-  clearCache();
-  layout();
-});
+document.fonts.addEventListener("loadingdone", relayout);
 
 void boot();
 

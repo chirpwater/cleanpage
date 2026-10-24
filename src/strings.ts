@@ -1,61 +1,14 @@
 export const S = {
   appName: "Clean Page",
-
-  fileGroup: "File",
-  toolbar: "Writing tools",
-  editGroup: "Edit",
-  newDoc: "New",
-  open: "Open",
   save: "Save",
   download: "Download",
-  print: "Print",
-  copy: "Copy",
   copied: "Copied to clipboard",
-  undo: "Undo",
-  redo: "Redo",
-  settings: "Settings",
-
-  letters: "Letters",
-  lettersSerif: "Serif",
-  lettersSansSerif: "Sans-serif",
-
-  fontSize: "Font size",
-  sizeRegular: "Regular",
-  sizeLarge: "Large",
-  onScreenColors: "On-Screen Colors",
-  colorsLight: "Light",
-  colorsDark: "Dark",
-  resetSettings: "Reset",
-  applySettings: "Apply",
-  cancel: "Cancel",
-  previewLetters: "Aa Bb",
-  previewSize: "Aa",
-
-  about: "About",
-  website: "https://www.cleanpage.org",
   newTab: "(opens in a new tab)",
-
-  downloadTitle: "Download your writing",
-  downloadName: "File name",
   downloadNameRequired: "Enter a file name.",
   downloadNameInvalid: "A file name needs some letters or numbers in it.",
-
-  // The writing surface
-  pageLabel: "Your writing",
-  tabHint: "To reach the buttons, press Alt and F. Escape returns to writing.",
   tabHintMac: "To reach the buttons, press Control, Option and F. Escape returns to writing.",
-
-  // Saved indicator
   saved: "Changes saved",
-  // The chip renders the words and the filename in two separate spans, so the
-  // prefix is a string and not a template: `savedPrefix + name` is what the
-  // child reads and what `role="status"` announces.
-  savedPrefix: "Changes saved — ",
-
-  // Page count, announced to screen readers only
   pageCount: (n: number) => (n === 1 ? "Now 1 page." : `Now ${n} pages.`),
-
-  // New / Open confirmation dialog
   dlgNewTitle: "Start a new page?",
   dlgNewBody: "This clears this page. Changes you have not saved will be gone.",
   dlgNewGo: "Start new page",
@@ -63,8 +16,6 @@ export const S = {
   dlgOpenBody: "This opens another file. Changes you have not saved will be gone.",
   dlgOpenGo: "Open the file",
   dlgKeep: "Keep writing",
-
-  // Problems, in plain words
   errSave: "Sorry, that did not save. Try again.",
   errNew: "Sorry, that did not start a new page. Try again.",
   errOpen: "Sorry, that file did not open. Try again.",
