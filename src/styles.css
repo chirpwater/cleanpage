@@ -265,6 +265,65 @@ dialog input:focus-visible {
   box-shadow: var(--shade);
   cursor: text;
 }
+@media (width >= 840px) {
+  #btnMenu {
+    display: none;
+  }
+  #tools {
+    display: contents;
+  }
+  #status {
+    order: 1;
+  }
+  #btnSettings,
+  #privacy {
+    order: 2;
+  }
+}
+@media (width < 840px) {
+  #tools {
+    position: fixed;
+    inset: var(--bar-h, 45px) auto auto 8px;
+    max-height: calc(100dvh - var(--bar-h, 45px) - 8px);
+    margin: 0;
+    padding: 6px;
+    flex-direction: column;
+    gap: 6px;
+    border: 1px solid var(--hair);
+    border-radius: 10px;
+    background: var(--bar-bg);
+    color: var(--bar-ink);
+    box-shadow: var(--lift);
+  }
+  #tools:popover-open {
+    display: flex;
+  }
+  #tools .grp {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  #tools .btn {
+    text-align: left;
+  }
+  #privacy {
+    padding: 8px 11px;
+  }
+  html,
+  body,
+  #desk {
+    background: var(--paper);
+  }
+  #desk {
+    padding: 0;
+  }
+  #sheet {
+    min-height: calc(100dvh - var(--bar-h, 45px));
+    padding: 16px 16px 96px;
+    outline: none;
+    box-shadow: none;
+  }
+}
+
 #ta {
   display: block;
   width: 100%;

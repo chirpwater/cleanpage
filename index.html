@@ -19,6 +19,8 @@
     <h1 class="vh">Clean Page</h1>
     <header id="bar">
       <div id="toolbar" role="toolbar" aria-label="Writing tools">
+      <button type="button" id="btnMenu" class="btn" popovertarget="tools" tabindex="-1">Menu</button>
+      <div id="tools" popover>
       <div class="grp" role="group" aria-label="File">
         <button type="button" id="btnNew" class="btn" title="New document — Alt+F, then Enter" aria-keyshortcuts="Alt+F">New</button>
         <button type="button" id="btnOpen" class="btn" tabindex="-1" title="Open a text file — Ctrl+O" aria-keyshortcuts="Control+O">Open</button>
@@ -32,12 +34,13 @@
         <button type="button" id="btnRedo" class="btn" aria-disabled="true" tabindex="-1" title="Redo — Ctrl+Shift+Z" aria-keyshortcuts="Control+Shift+Z">Redo</button>
       </div>
 
+      <button type="button" id="btnSettings" class="btn" tabindex="-1" title="Settings — Alt+T" aria-keyshortcuts="Alt+T">Settings</button>
+      <a id="privacy" href="https://www.cleanpage.org/privacy" target="_blank" rel="noopener noreferrer">Privacy<span class="vh newtab"></span></a>
+      </div>
+
       <p id="status" role="status" data-state="clean" data-empty="true">
         <span class="gl" aria-hidden="true">&#10003;</span><span id="statusText"><span id="statusWord">Changes saved</span><span id="statusName"></span></span>
       </p>
-
-      <button type="button" id="btnSettings" class="btn" tabindex="-1" title="Settings — Alt+T" aria-keyshortcuts="Alt+T">Settings</button>
-      <a id="privacy" href="https://www.cleanpage.org/privacy" target="_blank" rel="noopener noreferrer">Privacy<span class="vh newtab"></span></a>
       </div>
     </header>
 

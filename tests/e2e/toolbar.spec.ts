@@ -12,34 +12,33 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("on a phone every tool stays on screen and the bar stays out of the way", async ({ page }) => {
+test("on a phone the tools fold into one menu that holds every tool", async ({ page }) => {
   await open(page);
   const toolbar = page.locator("#toolbar");
+  const menu = toolbar.getByRole("button", { name: "Menu", exact: true });
 
-  await expect(toolbar.getByRole("button"), "no tool is dropped or hidden away").toHaveCount(
-    TOOLS.length,
-  );
   for (const name of TOOLS) {
-    await expect(toolbar.getByRole("button", { name, exact: true })).toBeVisible();
+    await expect(toolbar.getByRole("button", { name, exact: true })).toBeHidden();
   }
-
   const bar = await page.evaluate(() => {
-    const boxes = Array.from(document.querySelectorAll("#toolbar button")).map((b) =>
-      b.getBoundingClientRect(),
-    );
     const root = document.documentElement;
     return {
       height: document.getElementById("bar")!.getBoundingClientRect().height,
-      rows: new Set(boxes.map((r) => Math.round(r.top))).size,
-      shortest: Math.min(...boxes.map((r) => r.height)),
       sideways: root.scrollWidth > root.clientWidth,
     };
   });
-
-  expect(bar.rows, "the file actions on one row, the rest on a second").toBeLessThanOrEqual(2);
-  expect(bar.height, "two rows of buttons, not a slab").toBeLessThanOrEqual(2 * 44 + 16);
-  expect(bar.shortest, "a fingertip still gets 44 px").toBeGreaterThanOrEqual(44);
+  expect(bar.height, "one row of buttons, not a slab").toBeLessThanOrEqual(44 + 16);
   expect(bar.sideways, "nothing is pushed off the side").toBe(false);
+
+  await menu.tap();
+  for (const name of TOOLS) {
+    const button = toolbar.getByRole("button", { name, exact: true });
+    await expect(button).toBeVisible();
+    expect((await button.boundingBox())!.height, "a fingertip still gets 44 px").toBeGreaterThanOrEqual(44);
+  }
+
+  await toolbar.getByRole("button", { name: "Copy", exact: true }).tap();
+  await expect(toolbar.getByRole("button", { name: "Copy", exact: true }), "the menu closes once a tool is used").toBeHidden();
 });
 
 test("a tool a child cannot use yet is still a tool a child can read", async ({ page }) => {
@@ -67,6 +66,7 @@ test("Copy copies all writing without moving the caret", async ({ page, context 
   await page.locator("#ta").evaluate((element) => {
     (element as HTMLTextAreaElement).setSelectionRange(5, 5);
   });
+  await page.locator("#btnMenu").click();
   await page.locator("#btnCopy").click();
 
   await expect(page.locator("#ta")).toBeFocused();

@@ -68,6 +68,7 @@ function announcePages(pages: number): void {
   }, 300);
 }
 
+const pageless = matchMedia("(width < 840px)");
 let lastLines = -1;
 let layoutQueued = false;
 
@@ -93,7 +94,7 @@ function layout(): void {
   const pageH = lpp * lineH;
   const starts = lineStarts(mirror, text);
   const pages = pagesOf(starts, lpp);
-  const narrow = ta.clientWidth < mirror.clientWidth;
+  const narrow = pageless.matches || ta.clientWidth !== mirror.clientWidth;
   if (narrow) {
     if (starts.length !== lastLines) {
       const y = scrollY;

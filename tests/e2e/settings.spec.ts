@@ -99,6 +99,7 @@ test("each size shares metrics between writing, measurement, and printed pages",
 
 test("the compact toolbar and settings remain usable in a small zoomed viewport", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 256 });
+  await page.getByRole("button", { name: "Menu", exact: true }).click();
   await page.getByRole("button", { name: "Settings", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "Settings", exact: true });
   await expect(dialog).toBeVisible();
