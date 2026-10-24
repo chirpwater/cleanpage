@@ -9,8 +9,8 @@ Version 1.1 (see LICENSES/OFL-1.1.txt):
     Copyright 2014-2021 Adobe Systems Incorporated (http://www.adobe.com/),
       with Reserved Font Name "Source".
     https://github.com/adobe-fonts/source-serif
-    The upstream TrueType binary is committed alongside it as
-    public/fonts/SourceSerif4-Regular.ttf
+    The upstream TrueType binary is committed as
+    fonts-src/SourceSerif4-Regular.ttf
     (sha256 d47da11c5f55f031d9ec54c3172865d76009b2cbab5c706dfa73866b00096639).
     The WOFF2 is a lossless container conversion of that exact file, produced
     by `woff2_compress SourceSerif4-Regular.ttf` (woff2 1.0.2) and reproducible
@@ -22,8 +22,8 @@ Version 1.1 (see LICENSES/OFL-1.1.txt):
       "Source". All Rights Reserved. Source is a trademark of Adobe in the
       United States and/or other countries.
     https://github.com/adobe-fonts/source-sans
-    The upstream TrueType binary is committed alongside it as
-    public/fonts/SourceSans3-Regular.ttf
+    The upstream TrueType binary is committed as
+    fonts-src/SourceSans3-Regular.ttf
     (sha256 393fb5b878ceed04aebc34b097e853ae5138c51d0c34b496ce8e2b47e0d0b94a).
     The WOFF2 is a lossless container conversion of that exact file, produced
     by `woff2_compress SourceSans3-Regular.ttf` (woff2 1.0.2) and reproducible
