@@ -5,7 +5,7 @@ import { join, relative, resolve, sep } from "node:path";
 
 function swBuildId(): Plugin {
   const EXCLUDE = new Set(["sw.js", "_headers", ".nojekyll"]);
-  const EXCLUDE_EXT = [".ttf", ".map"];
+  const EXCLUDE_EXT = [".map"];
   let out = "dist";
   let root = process.cwd();
   return {
@@ -69,16 +69,7 @@ export function metaCsp(policy: string): string {
     .join("; ");
 }
 
-/**
- * Emits the policy into the built `index.html` as well.
- *
- * `public/_headers` is the real enforcement and stays authoritative — a header
- * is what a district reviewer can check with `curl -I`, and it is the only
- * place `frame-ancestors` means anything (DECISIONS 6.12). But GitHub Pages
- * cannot send response headers at all, and that is the deploy path this
- * repository automates, so on that host the meta tag is what carries the
- * policy. Build only: the dev server needs its own websocket.
- */
+/** Cloudflare honours public/_headers; the meta tag is defence in depth. */
 function cspMeta(): Plugin {
   let root = process.cwd();
   return {

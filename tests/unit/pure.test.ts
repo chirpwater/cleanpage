@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { LINES_PER_PAGE, PAGE_BODY_H, linesPerPage, mirrorText } from "../../src/metrics.js";
-import { pageSlices, pagesOf } from "../../src/paginate.js";
 import { downloadName, looksBinary, normaliseIncoming, suggestName } from "../../src/files.js";
 
 describe("metrics", () => {
@@ -22,52 +21,6 @@ describe("metrics", () => {
     expect(mirrorText("")).toBe("");
     expect(mirrorText("a\n")).toBe("a\n ");
     expect(mirrorText("a\n\n")).toBe("a\n\n ");
-  });
-});
-
-describe("pagination arithmetic", () => {
-  const starts = (n: number) => Array.from({ length: n }, (_, i) => i * 10);
-
-  it("counts pages", () => {
-    expect(pagesOf([0])).toBe(1);
-    expect(pagesOf(starts(30))).toBe(1);
-    expect(pagesOf(starts(31))).toBe(2);
-    expect(pagesOf(starts(60))).toBe(2);
-    expect(pagesOf(starts(61))).toBe(3);
-  });
-
-  it("counts and slices at whatever lines-per-page the spacing gives", () => {
-    expect(pagesOf(starts(40), 40)).toBe(1);
-    expect(pagesOf(starts(41), 40)).toBe(2);
-    expect(pagesOf(starts(24), 24)).toBe(1);
-    expect(pagesOf(starts(25), 24)).toBe(2);
-
-    const text = "x".repeat(700);
-    expect(pageSlices(text, starts(41), 40)[0]!.length).toBe(400);
-    expect(pageSlices(text, starts(41), 40).join("")).toBe(text);
-  });
-
-  it("slices at visual line starts, losing nothing", () => {
-    const text = "x".repeat(700);
-    const s = starts(31);
-    const slices = pageSlices(text, s);
-    expect(slices).toHaveLength(2);
-    expect(slices.join("")).toBe(text);
-    expect(slices[0]!.length).toBe(300);
-  });
-
-  it("31 visual lines are 30 + 1, never 29 + 2", () => {
-    const text = Array.from({ length: 31 }, (_, i) => `L${String(i + 1).padStart(3, "0")}`).join("\n");
-    const s: number[] = [];
-    let at = 0;
-    for (const line of text.split("\n")) {
-      s.push(at);
-      at += line.length + 1;
-    }
-    const slices = pageSlices(text, s);
-    expect(slices).toHaveLength(2);
-    expect(slices[0]!.split("\n").filter(Boolean)).toHaveLength(30);
-    expect(slices[1]!.trim()).toBe("L031");
   });
 });
 

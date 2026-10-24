@@ -1,5 +1,4 @@
 import { expect, test } from "@playwright/test";
-import { execFileSync } from "node:child_process";
 import { existsSync, rmSync, statSync } from "node:fs";
 import { join } from "node:path";
 import {
@@ -9,8 +8,12 @@ import {
   OUT,
   engineUnavailable,
   havePoppler,
+  firstWordBox,
   numberedLines,
   open,
+  pdfInfo,
+  pdfPageCount,
+  pdfPageText,
   screenPages,
   setText,
   words,
@@ -38,14 +41,6 @@ async function printToFile(page: import("@playwright/test").Page): Promise<strin
   throw new Error("Firefox never finished writing " + FF_PDF);
 }
 
-const sheets = (path: string): number =>
-  Number(/Pages:\s+(\d+)/.exec(execFileSync("pdfinfo", [path], { encoding: "utf8" }))?.[1]);
-
-const sheetWords = (path: string, p: number): string[] =>
-  words(
-    execFileSync("pdftotext", ["-f", String(p), "-l", String(p), path, "-"], { encoding: "utf8" }),
-  );
-
 test("Firefox prints one sheet per screen page, 30 lines to a sheet", async ({ page }) => {
   await open(page);
   const N = 60;
@@ -54,26 +49,23 @@ test("Firefox prints one sheet per screen page, 30 lines to a sheet", async ({ p
   expect(screen).toHaveLength(2);
 
   const path = await printToFile(page);
-  expect(sheets(path), "2 screen pages, 2 sheets — not 29 + 1 + 29 + 1").toBe(screen.length);
+  expect(pdfPageCount(path), "2 screen pages, 2 sheets — not 29 + 1 + 29 + 1").toBe(screen.length);
 
   const seen: string[] = [];
   for (let p = 1; p <= screen.length; p++) {
-    const got = sheetWords(path, p).filter((w) => /^L\d{3}$/.test(w));
+    const got = words(pdfPageText(path, p)).filter((w) => /^L\d{3}$/.test(w));
     expect(got, `sheet ${p} is a whole page`).toHaveLength(LINES_PER_PAGE);
     seen.push(...got);
   }
   expect(seen).toEqual(Array.from({ length: N }, (_, i) => "L" + String(i + 1).padStart(3, "0")));
 
   // And the ink is where it was: 0.5 in from the left edge and from the top.
-  const xml = execFileSync("pdftotext", ["-bbox", "-f", "1", "-l", "1", path, "-"], {
-    encoding: "utf8",
-  });
-  const m = /<word xMin="([\d.-]+)" yMin="([\d.-]+)"[^>]*>([^<]*)<\/word>/.exec(xml)!;
-  expect(m[3]).toBe("L001");
-  expect(Number(m[1]), "36 pt = 0.5 in from the paper's edge").toBeCloseTo(36, 1);
-  expect(Number(m[2])).toBeGreaterThan(36);
-  expect(Number(m[2])).toBeLessThan(48);
-  expect(execFileSync("pdfinfo", [path], { encoding: "utf8" })).toMatch(
+  const m = firstWordBox(path);
+  expect(m.word).toBe("L001");
+  expect(m.xMin, "36 pt = 0.5 in from the paper's edge").toBeCloseTo(36, 1);
+  expect(m.yMin).toBeGreaterThan(36);
+  expect(m.yMin).toBeLessThan(48);
+  expect(pdfInfo(path)).toMatch(
     /Page size:\s+612 x 792 pts \(letter\)/,
   );
 });
@@ -87,8 +79,8 @@ test("Firefox prints the hostile corpus on exactly the sheets the screen shows",
   expect(screen.length).toBeGreaterThanOrEqual(4);
 
   const path = await printToFile(page);
-  expect(sheets(path), "no orphan sheets").toBe(screen.length);
+  expect(pdfPageCount(path), "no orphan sheets").toBe(screen.length);
   for (let p = 1; p <= screen.length; p++) {
-    expect(sheetWords(path, p).length, `sheet ${p} carries words`).toBeGreaterThan(0);
+    expect(words(pdfPageText(path, p)).length, `sheet ${p} carries words`).toBeGreaterThan(0);
   }
 });

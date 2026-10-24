@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { OUT, open, setText, settle } from "./helpers.js";
+import { OUT, disk, mockPickers, open, setText, settle } from "./helpers.js";
 
 test.beforeEach(async ({ page }) => {
   mkdirSync(OUT, { recursive: true });
@@ -304,4 +304,125 @@ test("dropping something that is not writing is refused, not opened by the brows
   expect(await page.inputValue("#ta")).toBe("half a story");
   await page.locator("#sayOk").click();
   await expect(page.locator("#say")).toBeHidden();
+});
+
+test("a storage abort after choosing a save file reports failure and keeps the writing", async ({ page }) => {
+  await page.addInitScript(() => {
+    (window as unknown as Record<string, unknown>)["showSaveFilePicker"] = async () => ({
+      name: "story.txt",
+      createWritable: async () => ({
+        write: async () => { throw new DOMException("The disk write was aborted", "AbortError"); },
+        close: async () => undefined,
+      }),
+    });
+  });
+  await open(page);
+  await setText(page, "My story remains unsaved.");
+  await page.locator("#btnSave").click();
+  await expect(page.locator("#say")).toBeVisible();
+  await expect(page.locator("#ta")).toHaveValue("My story remains unsaved.");
+  await expect(page.locator("#status")).toHaveAttribute("data-state", "dirty");
+});
+
+test("a storage abort after choosing an open file reports failure", async ({ page }) => {
+  await page.addInitScript(() => {
+    (window as unknown as Record<string, unknown>)["showOpenFilePicker"] = async () => [{
+      name: "story.txt",
+      getFile: async () => { throw new DOMException("The disk read was aborted", "AbortError"); },
+    }];
+  });
+  await open(page);
+  await page.locator("#btnOpen").click();
+  await expect(page.locator("#say")).toBeVisible();
+  await expect(page.locator("#ta")).toHaveValue("");
+});
+
+test("cancelling either native picker stays quiet and preserves the document", async ({ page }) => {
+  await page.addInitScript(() => {
+    const cancel = async () => { throw new DOMException("Picker cancelled", "AbortError"); };
+    window.showOpenFilePicker = cancel;
+    window.showSaveFilePicker = cancel;
+  });
+  await open(page);
+  await page.locator("#btnOpen").click();
+  await expect(page.locator("#ta")).toBeFocused();
+  await expect(page.locator("#say")).toBeHidden();
+  await setText(page, "Keep my draft.");
+  await page.locator("#btnSave").click();
+  await expect(page.locator("#ta")).toBeFocused();
+  await expect(page.locator("#say")).toBeHidden();
+  await expect(page.locator("#ta")).toHaveValue("Keep my draft.");
+  await expect(page.locator("#status")).toHaveAttribute("data-state", "dirty");
+});
+
+test("refusing a file that is not plain writing keeps the document bound to its own file", async ({
+  page,
+}) => {
+  await mockPickers(page);
+  await open(page);
+
+  await setText(page, "My tide pool story");
+  await page.locator("#btnSave").click();
+  await settle(page);
+  await expect(page.locator("#status")).toContainText("story.txt");
+  expect((await disk(page)).savePicks).toBe(1);
+
+  await setText(page, "My tide pool story and more");
+  await page.locator("#btnSave").click();
+  await settle(page);
+  let d = await disk(page);
+  expect(d.savePicks, "the child is never asked where twice").toBe(1);
+  expect(d.files["story.txt"]).toBe("My tide pool story and more");
+
+  await page.evaluate(() => {
+    window.__disk.nextOpen = { name: "photo.png", text: "�".repeat(400) };
+  });
+  await page.locator("#btnOpen").click();
+  await expect(page.locator("#say")).toBeVisible();
+  await page.locator("#sayOk").click();
+  await expect(page.locator("#say")).toBeHidden();
+  await settle(page);
+
+  expect(await page.inputValue("#ta")).toBe("My tide pool story and more");
+  await expect(page.locator("#status")).toContainText("story.txt");
+  await expect(page.locator("#status")).toHaveAttribute("data-state", "clean");
+
+  await setText(page, "My tide pool story and more and more");
+  await page.locator("#btnSave").click();
+  await settle(page);
+  d = await disk(page);
+  expect(d.savePicks, "no second file, no second question").toBe(1);
+  expect(Object.keys(d.files).sort()).toEqual(["photo.png", "story.txt"]);
+  expect(d.files["story.txt"], "the file the teacher collects is the current one").toBe(
+    "My tide pool story and more and more",
+  );
+  await expect(page.locator("#status")).toContainText("story.txt");
+});
+
+test("opening a real .txt rebinds the document to it, and Save writes back there", async ({
+  page,
+}) => {
+  await mockPickers(page);
+  await open(page);
+
+  await setText(page, "first document");
+  await page.locator("#btnSave").click();
+  await settle(page);
+  expect(await page.locator("#status").innerText()).toContain("story.txt");
+
+  await page.evaluate(() => {
+    window.__disk.nextOpen = { name: "from-the-teacher.txt", text: "write about your weekend\n" };
+  });
+  await page.locator("#btnOpen").click();
+  await settle(page);
+  expect(await page.inputValue("#ta")).toBe("write about your weekend\n");
+  expect(await page.locator("#status").innerText()).toContain("from-the-teacher.txt");
+
+  await setText(page, "write about your weekend\nWe went to the beach.\n");
+  await page.locator("#btnSave").click();
+  await settle(page);
+  const d = await disk(page);
+  expect(d.savePicks, "the opened file's handle was adopted").toBe(1);
+  expect(d.files["from-the-teacher.txt"]).toBe("write about your weekend\nWe went to the beach.\n");
+  expect(d.files["story.txt"], "the first file is untouched").toBe("first document");
 });

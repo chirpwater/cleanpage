@@ -1,6 +1,6 @@
 import { LINES_PER_PAGE, lineHeightOf } from "./metrics.js";
 
-const cache = new Map<string, number[]>();
+let cache = new Map<string, number[]>();
 
 export function clearCache(): void {
   cache.clear();
@@ -58,17 +58,15 @@ function measurePara(mirror: HTMLPreElement, para: string, lineH: number): numbe
 export function lineStarts(mirror: HTMLPreElement, text: string): number[] {
   const out: number[] = [];
   const lineH = lineHeightOf(mirror);
+  const next = new Map<string, number[]>();
   let base = 0;
   for (const para of text.split("\n")) {
-    let rel = cache.get(para);
-    if (!rel) {
-      rel = measurePara(mirror, para, lineH);
-      cache.set(para, rel);
-      if (cache.size > 4000) cache.delete(cache.keys().next().value as string);
-    }
+    const rel = next.get(para) ?? cache.get(para) ?? measurePara(mirror, para, lineH);
+    next.set(para, rel);
     for (const s of rel) out.push(base + s);
     base += para.length + 1;
   }
+  cache = next;
   return out;
 }
 
