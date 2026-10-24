@@ -40,3 +40,32 @@ jobs:
             test-results/
             playwright-report/
           retention-days: 7
+
+  deploy-dev:
+    needs: e2e
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-dev
+      cancel-in-progress: true
+    environment:
+      name: dev
+      url: https://dev.cleanpage.app/
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run build
+        env:
+          CP_BUILD_REF: main
+
+      - run: npx --yes wrangler@4 deploy --env dev
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
