@@ -281,13 +281,21 @@ dialog input:focus-visible {
   }
 }
 @media (width < 840px) {
+  #status {
+    order: 1;
+  }
+  #toolbar > .grp {
+    order: 2;
+  }
   #tools {
     position: fixed;
     inset: var(--bar-h, 45px) auto auto 8px;
+    box-sizing: border-box;
+    width: min(320px, 100vw - 16px);
     max-height: calc(100dvh - var(--bar-h, 45px) - 8px);
     margin: 0;
-    padding: 6px;
-    flex-direction: column;
+    padding: 8px;
+    grid-template-columns: repeat(3, 1fr);
     gap: 6px;
     border: 1px solid var(--hair);
     border-radius: 10px;
@@ -296,17 +304,19 @@ dialog input:focus-visible {
     box-shadow: var(--lift);
   }
   #tools:popover-open {
-    display: flex;
+    display: grid;
   }
   #tools .grp {
-    flex-direction: column;
-    align-items: stretch;
+    display: contents;
   }
   #tools .btn {
-    text-align: left;
+    min-height: 48px;
+    border-color: var(--hair);
   }
   #privacy {
-    padding: 8px 11px;
+    grid-column: 1 / -1;
+    justify-self: center;
+    padding: 6px 11px 2px;
   }
   html,
   body,

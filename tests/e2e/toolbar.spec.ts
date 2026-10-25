@@ -12,13 +12,15 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("on a phone the tools fold into one menu that holds every tool", async ({ page }) => {
+test("on a phone undo and redo stay in the bar and the rest fold into one menu", async ({ page }) => {
   await open(page);
   const toolbar = page.locator("#toolbar");
   const menu = toolbar.getByRole("button", { name: "Menu", exact: true });
 
   for (const name of TOOLS) {
-    await expect(toolbar.getByRole("button", { name, exact: true })).toBeHidden();
+    const button = toolbar.getByRole("button", { name, exact: true });
+    if (name === "Undo" || name === "Redo") await expect(button).toBeVisible();
+    else await expect(button).toBeHidden();
   }
   const bar = await page.evaluate(() => {
     const root = document.documentElement;
@@ -31,6 +33,10 @@ test("on a phone the tools fold into one menu that holds every tool", async ({ p
   expect(bar.sideways, "nothing is pushed off the side").toBe(false);
 
   await menu.tap();
+  const rows = await page.locator("#tools .btn").evaluateAll((buttons) =>
+    new Set(buttons.map((b) => Math.round(b.getBoundingClientRect().top))).size,
+  );
+  expect(rows, "the menu is a short grid, not a long list").toBeLessThanOrEqual(2);
   for (const name of TOOLS) {
     const button = toolbar.getByRole("button", { name, exact: true });
     await expect(button).toBeVisible();
